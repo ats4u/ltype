@@ -1,0 +1,16 @@
+ltype.js
+An Extremely Lightweight Type Checking System for JavaScript
+
+Written by Ats Okasan (I'm a Japanese)
+http://ats.oka.nu/
+ats.creativity@gmail.com
+
+ltype.js
+    ltype's main file.
+
+ltest.js
+    A simple test framework for JavaScript
+
+ltype_test.js
+    Defines test patterns.
+
