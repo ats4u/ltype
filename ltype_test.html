@@ -4,12 +4,44 @@
         <script src="ltest.js" ></script>
         <script src="ltype_test.js" ></script>
         <script>
+            function __ltestConsoleFunc() {
+                if ( arguments.length == 0 ) {
+                    return;
+                }
+                for ( var i=0; i<arguments.length; i++ ) {
+                    if ( 0<i  ){
+                        document.write( "&nbsp;" );
+                    }
+                    var o = arguments[i];
+                    var t = typeof o;
+                    var s = '';
+                    if ( t === 'function' ) {
+                        s= o.toString().trim();
+                    } else if ( t === 'undefined' ) {
+                        s="undefined";
+                    } else if ( t === 'string' ) {
+                        s = o.trim() ;
+                    } else {
+                        s = JSON.stringify( o, undefined, 4 );
+                    }
+                    document.write( s.replace(/[ \t]/g, '&nbsp;' ).replace( /\n/g, "<br/>" ) );
+                }
+                document.write( "<br\>" );
+            }
+            ltestConsole( {
+                log:__ltestConsoleFunc,
+                error:__ltestConsoleFunc,
+            });
+
+            document.write("<div style='font-size:9pt;line-height:1em;'>" );
             var err=null;
             try {
                 ltest();
             } catch (e) {
                 err=e;
             }
+            document.write("</div>" );
+
             if ( err != null ) {
                 document.write("<span style='color:red;font-size:larger;font-weight:bolder;'>" + err + "</span><br/>" );
             }

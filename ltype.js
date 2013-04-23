@@ -323,7 +323,7 @@
     function _ltypeobject_revert_prefix( doCheckFields, argTypeObject ) {
         // __lconsole().log( argTypeObject.LTYPEOF );
         if ( argTypeObject != null && argTypeObject.LTYPEOF != undefined && argTypeObject.LTYPEOF=='object' ) {
-            return doCheckFields ? "*" : "";
+            return doCheckFields ? "" : "*";
         } else {
             return "";
         }

@@ -5,14 +5,11 @@
 * Licence : BSD licence
 */
 
-    if ( console.group == undefined ) {
-        console.group = function(){
-        };
+    var __ltestConsole = console;
+    function ltestConsole( console ) {
+        __ltestConsole = console;
     }
-    if ( console.groupEnd == undefined ) {
-        console.groupEnd = function(){
-        };
-    }
+
     var _ltest_index= 0;
     var _ltest_values=[];
     var _ltest_name =null;
@@ -22,26 +19,24 @@
     };
     function ltestBegin(name) { 
         _ltest_name = name;
-        console.group( "TEST(" + name +")" );
         ltestClear() 
     };
     function ltestEnd()   { 
-        console.groupEnd( "TEST("+ ")" );
-        console.log( "REPORT >> " );
+        __ltestConsole.log( "REPORT >> " );
         var foundError = false;
         for ( var i=0;i<_ltest_values.length; i++ ){
-            console.log( _ltest_values[i].name );
+            __ltestConsole.log( _ltest_values[i].name );
             if ( _ltest_values[i].status != 'EQU' ) {
                 foundError = true;
             }
             if ( _ltest_filter_func( _ltest_values[i].status ) ) {
-                console.log( "func", _ltest_values[i].func );
-                console.log( "status", _ltest_values[i].status );
-                console.log( "expected", JSON.stringify( _ltest_values[i].expected,undefined, 4 ) );
-                console.log( "output",   JSON.stringify( _ltest_values[i].output,undefined, 4 ) );
+                __ltestConsole.log( "func", _ltest_values[i].func );
+                __ltestConsole.log( "status", _ltest_values[i].status );
+                __ltestConsole.log( "expected", JSON.stringify( _ltest_values[i].expected,undefined, 4 ) );
+                __ltestConsole.log( "output",   JSON.stringify( _ltest_values[i].output,undefined, 4 ) );
             }
         }
-        console.log( "<<REPORT " );
+        __ltestConsole.log( "<<REPORT " );
         if( foundError ) {
             throw "Failed : see console.";
         } else {
@@ -52,12 +47,17 @@
     function _ltest_filter_func_default(status) {
         return status != 'EQU';
     }
+    function _ltest_filter_func_all(status) {
+        return true;
+    }
     function _ltest_filter_func_only_critical(status) {
         return status == 'NEQ_TOTALLY_BAD';
     }
     function ltestSetFilterFunction( func ) {
         if ( func == null ) { 
             _ltest_filter_func = _ltest_filter_func_default;
+        } else if ( func =='ALL' ) {
+            _ltest_filter_func = _ltest_filter_func_all;
         } else if ( func =='ONLY_CRITICAL' ) {
             _ltest_filter_func = _ltest_filter_func_only_critical;
         } else {
@@ -70,11 +70,10 @@
         _ltest_unit_name = name == undefined ? "" : name;
         var id = "TEST("+_ltest_name+")("+ _ltest_unit_name + ")" + (++_ltest_index);
         _ltest_current_unit_id = id;
-        console.group(id);
+        __ltestConsole.log(id.trim());
         return id;
     }
     function ltestUnitEnd() {
-        console.groupEnd();
     }
     function ltestUnitCurrentID() {
         return _ltest_current_unit_id;
@@ -82,10 +81,10 @@
 
     function ltestUnitCheck( func, output, expected ) {
         var f =undefined;
-        // console.log( func );
-        // console.log( JSON.stringify( output,f,4) );
+        // __ltestConsole.log( func );
+        // __ltestConsole.log( JSON.stringify( output,f,4) );
         if ( expected == null ) {
-            // console.log( output, expected );
+            // __ltestConsole.log( output, expected );
             _ltest_values.push( { name : ltestUnitCurrentID(), func:func, status: "NEQ", expected : '_undefined_', output : output } );
         } else {
             if ( ( typeof expected ) =='function' ) {
@@ -95,13 +94,13 @@
                 if ( eq( output, expected ) ) {
                     _ltest_values.push( { name : ltestUnitCurrentID(), func:func, status: "EQU", expected : expected, output : output } );
                 } else {
-                    // console.log( output, expected );
+                    // __ltestConsole.log( output, expected );
                     _ltest_values.push( { name : ltestUnitCurrentID(), func:func, status: "NEQ", expected : expected, output : output } );
                     // if ( output.type == expected.type ) {
-                    //     console.log( output, expected );
+                    //     __ltestConsole.log( output, expected );
                     //     _ltest_values.push( { name : ltestUnitCurrentID(), func:func, status: "NEQ", expected : expected, output : output } );
                     // } else {
-                    //     console.log( output,expected );
+                    //     __ltestConsole.log( output,expected );
                     //     _ltest_values.push( { name : ltestUnitCurrentID(), func:func, status: "NEQ_TOTALLY_BAD", expected : expected, output : output } );
                     // }
                 }

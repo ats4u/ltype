@@ -30,6 +30,8 @@
     var ltypeTestExpectValue = ltestUnit;
     var ltypeTestExpectError = ltestUnit;
     // ltestSetFilterFunction( 'ONLY_CRITICAL');
+    ltestSetFilterFunction( 'ALL' );
+
 
     function ltest() {
         LTYPE_TEST_MODE = true;
@@ -2624,7 +2626,6 @@
 
         // // t2();
         function t2() {
-            console.trace();
             var lcast = lcompile( [ { LNAME : "LObject", LTYPEOF:"object",LFIELDS:{ obj : "LSub", }, }, { LNAME:"LSub", LTYPEOF:"object", }, ] );
             ltypeTestExpectError( "", function () {
                 return lcast( "*LObject", { obj:1 } );
