@@ -61,7 +61,12 @@
 
     function _lisArray(object){
         //return object==null ? false : object.constructor.name == "Array";
-        return object==null ? false : object.constructor == Array ? true : ( object.length != undefined && object.slice != undefined )
+        // return object==null ? false : ( object.constructor == Array ? true : ( object.length != undefined && object.slice != undefined ) );
+        return (
+            ( typeof object=='object' ) && 
+            ( object!=null ) && 
+            ( object.constructor == Array || ( object.length != undefined && object.slice != undefined ) )
+        );
     }
 
     function _lisObject(object){
@@ -69,7 +74,11 @@
     }
 
     function _lclone(object){ 
-        return JSON.parse( JSON.stringify( object ) );
+        if ( typeof object == 'object' ) {
+            return JSON.parse( JSON.stringify( object ) );
+        } else {
+            return object;
+        }
     }
 
     // eq( {a:"hello",b:"world"}, {b:"world", a:"hello" } )
@@ -98,21 +107,25 @@
 
     function ltypeBasic() {
         return [
-            {LNAME:"any",       LTYPEOF:'any',   },
-            {LNAME:"null",      LTYPEOF:'object',    LEQU:[null] },
-            {LNAME:"undefined", LTYPEOF:'undefined', LEQU:[undefined] }, 
-            {LNAME:"function",  LTYPEOF:'function',  LEQU:[] },
-            {LNAME:"object",    LTYPEOF:'object',    }, 
-            {LNAME:"boolean",   LTYPEOF:'boolean',   }, 
-            {LNAME:"string",    LTYPEOF:'string',    }, 
-            {LNAME:"number",    LTYPEOF:'number',    }, 
-            {LNAME:"array",     LTYPEOF:'array',    }, 
+            {LNAME:'any',       LTYPEOF:'any',       },
+            // {LNAME:'null',      LTYPEOF:'object',    LEQU:[null] },
+            {LNAME:'null',      LTYPEOF:'null',      },
+            {LNAME:'array',     LTYPEOF:'array',     },
+            {LNAME:'undefined', LTYPEOF:'undefined'  },
+            {LNAME:'function',  LTYPEOF:'function'   },
+            {LNAME:'object',    LTYPEOF:'object',    },
+            {LNAME:'boolean',   LTYPEOF:'boolean',   },
+            {LNAME:'string',    LTYPEOF:'string',    },
+            {LNAME:'number',    LTYPEOF:'number',    },
         ];
     }
 
     var LTYPE_TEST_MODE = false;
     var LTYPE_LAST_OUTPUT = null;
     function lcompile( _ltypes_arr ) {
+        if ( arguments.length == 0 ) {
+            _ltypes_arr = [];
+        }
         if ( ! _lisArray( _ltypes_arr ) ) {
             throw new Error( "Illegal Argument (malformed parameter object) : " + JSON.stringify( _ltypes_arr ) );
         }
@@ -137,19 +150,26 @@
                 name = 'param';
             }
             var llog = [];
-            var status = _lcast( map_ltypes, llog, true, /*string||object*/ type , name, /*object*/ object );
+            var lresult = _lcast( map_ltypes, llog, true, /*string||object*/ type , name, /*object*/ object );
+            var status  = { 
+                result : lresult ? 'NORMAL' : 'ERROR',
+                log : llog,
+            };
+            lcast.status = status;
             if ( LTYPE_TEST_MODE ) {
-                LTYPE_LAST_OUTPUT.push( { 
-                    status : status ? 'NORMAL' : 'ERROR',
-                    log : llog,
-                });
+                LTYPE_LAST_OUTPUT.push( status );
             }
-            if ( ! status ) {
-                __lconsole().error( "Type Mismatch", new Error().stack.split("\n"), type, JSON.stringify( llog,undefined, 4 ) );
-                throw { __proto__:_LError, message:"Type Mismatch",stack:new Error().stack.split("\n"), object:object, type:type, log:llog }
+            // for ( var i=0; i<lcast.__ondone.length; i++ ) {
+            //     lcast.__ondone[i]( status );
+            // }
+            if ( ! lresult ) {
+                // __lconsole().error( "Type Mismatch", new Error().stack.split("\n"), type, JSON.stringify( llog,undefined, 4 ) );
+                // throw { __proto__:_LError, message:"Type Mismatch",stack:new Error().stack.split("\n"), object:object, type:type, log:llog }
+                throw { __proto__:_LError, message:"Type Mismatch",stack:new Error().stack, object:object, type:type, log:llog }
             }
             return object;
         };
+        // lcast.__ondone = [];
         return lcast;
     }
     
@@ -200,7 +220,8 @@
         }
     }
 
-    function _llogNotifyPrimitive( result, objectName2, objectPrimitiveType, argTypeObject ) {
+    function _llogNotifyPrimitive( result, objectName2, objectValue, argTypeObject ) {
+        var objectPrimitiveType = typeof objectValue;
         if ( result ) {
             return ( { type:"OK",                      reason : 
                 "the type '"+argTypeObject.LNAME+"' requires a primitive type '" + argTypeObject.LTYPEOF + "' and the value of '" + objectName2 + "' is a primitive type '" + objectPrimitiveType +"' value" } );
@@ -214,11 +235,17 @@
     * a wildcard class name 'any' matches every type but undefined. 
     * a wildcard class name 'array' matches array object. 
     */
-    function _lasCheckPrimitive( argTypeObject, objectPrimitiveType ) {
-        return (argTypeObject.LTYPEOF==='any' && objectPrimitiveType !='undefined' ) || 
-               (argTypeObject.LTYPEOF==='array' && objectPrimitiveType=='object' && _lisArray(objectValue)) ||
-               (argTypeObject.LTYPEOF=== objectPrimitiveType );
+    function _lasCheckPrimitive( argTypeObject, objectValue ) {
+        var objectPrimitiveType = typeof objectValue;
+        return ( 
+               ( argTypeObject.LTYPEOF==='any'    && objectPrimitiveType!=='undefined' ) || 
+               ( argTypeObject.LTYPEOF==='null'   && objectPrimitiveType==='object' && ( objectValue === null ) ) ||
+               ( argTypeObject.LTYPEOF==='object' && objectPrimitiveType==='object' && ( objectValue !== null ) ) ||
+               ( argTypeObject.LTYPEOF==='array'  && objectPrimitiveType==='object' && _lisArray( objectValue ) ) ||
+               ( argTypeObject.LTYPEOF!=='object' && argTypeObject.LTYPEOF=== objectPrimitiveType )
+        );
     }
+
     /*
     * _ltypeof
     *     check RTTI object
@@ -309,7 +336,7 @@
         });
         function fn( prefix, argTypeName, arrayDim ) {
             // __lconsole().log( "fn()",prefix, argTypeName, arrayDim );
-            var doCheckFields = ( 0<=prefix.indexOf("*" ) );
+            var doCheckFields = ( prefix.indexOf("*" )<0 );
             return _ltypeobject_fn1( ltypes, sublog, doinit, doCheckFields, argTypeName, objectName1, objectValue, arrayDim, [] );
         }
         var result = eval( typeValueScript );
@@ -387,19 +414,18 @@
         sublog.push( _llogNotifyStatus( 'L300',result, 'the type', _ltypeobject_revert_prefix( doCheckFields,argTypeObject )+ argTypeName+_ldimToStr(arrayIndexStack2Max), objectName2, subsublog ) );
         return result;
     }
-    function _ltypeobject_fn3( ltypes, sublog, doCheckFields, doinit, /*string*/ argTypeName, /*object*/argTypeObject, objectName2, objectValue,arrayIndexStack2Max, arrayIndexStack2 ) {
-        var objectPrimitiveType = typeof objectValue;
+    function _ltypeobject_fn3( ltypes, sublog, doCheckFields, doinit, /*string*/ argTypeName, /*object*/argTypeObject, objectName2, objectValue, arrayIndexStack2Max, arrayIndexStack2 ) {
 
         if ( argTypeObject === undefined ) {
             sublog.push( { type:"Undefined Type", reason : "the type '"+ argTypeName+ "' is not defined" } );
             return false;
-        } else if (argTypeObject.LTYPEOF===undefined ) {
+        } else if (argTypeObject.LTYPEOF==undefined ) {
             sublog.push( { type:"Malformed Type Definition", reason : "the type '"+ argTypeName + "' has no LTYPEOF property" } );
             return false;
         } else {
             return (function() {
-                var result = _lasCheckPrimitive( argTypeObject, objectPrimitiveType );
-                sublog.push( _llogNotifyPrimitive( result, objectName2, objectPrimitiveType, argTypeObject ) );
+                var result = _lasCheckPrimitive( argTypeObject, objectValue );
+                sublog.push( _llogNotifyPrimitive( result, objectName2, objectValue, argTypeObject ) );
                 return result;
             })() && (function() {
                 // return  _ltypefield( ltypes, sublog, /*boolean*/ doinit, /*string||object*/ argTypeName, objectName2, objectValue );
@@ -470,11 +496,16 @@
                     sublog.push( { type:"OK", reason : "the type '" + argTypeName+ "' has no type restriction" } );
                     return true;
                 } 
+
+                var typeLIS = argTypeObject.LIS;
+                // if ( argTypeObject.LNAME != undefined ) {
+                //     typeLIS.unshift( argTypeObject.LNAME );
+                // }
                 
                 // CONDITION 2
                 var objectLIS /*string[]*/ = _ltypeof( objectValue );
                 if ( objectLIS == null ) {
-                    sublog.push( { type:"Unqualified Object", reason : "the type '" + argTypeName + "' has type restriction ["+ argTypeObject.LIS.join(",") + "] but the value has no RTTI information", objectValue:objectValue } );
+                    sublog.push( { type:"Unqualified Object", reason : "the type '" + argTypeName + "' has type restriction ["+ typeLIS.join(",") + "] but the value has no RTTI information", objectValue:objectValue } );
                     return false;
                 } 
 
@@ -482,8 +513,8 @@
 
                 // (AND operation)
                 var outerFound = true;
-                for ( var aidx=0; aidx<argTypeObject.LIS.length; aidx++ ) {
-                    var atype = argTypeObject.LIS[aidx];
+                for ( var aidx=0; aidx<typeLIS.length; aidx++ ) {
+                    var atype = typeLIS[aidx];
                     // (OR operation)
                     var found=false;
                     for ( var oidx=0; oidx<objectLIS.length; oidx++ ) {
@@ -499,9 +530,9 @@
                 }
 
                 if ( outerFound ) {
-                    sublog.push( { type:"OK",                        reason : "the type '" + argTypeName + "' has type requirement ["+ argTypeObject.LIS.join(",")  + "] and the value has type [" + objectLIS.join(",") +"]" } );
+                    sublog.push( { type:"OK",                        reason : "the type '" + argTypeName + "' has type requirement ["+ typeLIS.join(",")  + "] and the value has type [" + objectLIS.join(",") +"]" } );
                 } else {
-                    sublog.push( { type:"Type Information Mismatch", reason : "the type '" + argTypeName + "' has type requirement ["+ argTypeObject.LIS.join(",")  + "] and the value has type [" + objectLIS.join(",") +"]" } );
+                    sublog.push( { type:"Type Information Mismatch", reason : "the type '" + argTypeName + "' has type requirement ["+ typeLIS.join(",")  + "] and the value has type [" + objectLIS.join(",") +"]" } );
                 }
 
                 return outerFound;

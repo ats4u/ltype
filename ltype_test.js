@@ -42,6 +42,16 @@
         function t0() {
             ltestSetUnitExecute( null );
 
+            // NO0
+            // if no argument was passed to lcompile, it treats as an empty array.
+            ltypeTestExpectValue( "NO_PARAM", function () {
+                var lcast = lcompile(); 
+                return 'ok';
+            },{
+                "type" : "NORMAL",
+                "value":'ok',
+            });
+
             // NO1
             // if null was passed to lcompile, throw error.
             ltypeTestExpectError( "ILLEGAL_COMPILE_NULL", function () {
@@ -136,6 +146,320 @@
             },{
             });
         }
+
+        tbasic();
+        function tbasic() {
+            ltestSetUnitExecute( null );
+            var lcast;
+
+            // NO5
+            // if lcompile gets object, return ltype's interface object.
+            ltypeTestExpectValue( "COMPILE_NORMAL",  function () { 
+                lcast = lcompile();
+                return 'NO_ERROR';
+            },{
+                type:'NORMAL',
+                value:'NO_ERROR',
+            });
+
+            ltestSetUnitExecute( ltestUnitExecute2 );
+
+            ltypeTestExpectValue( "PRIMITIVETEST_01_OBJECT", function () {
+                return lcast( "object", {} );
+            }, [
+                {
+                    "result": "NORMAL",
+                    "log": [
+                        {
+                            "type": "OK",
+                            "reason": "the script 'object' with the value of 'param' was evaluated as true / see $sublog",
+                            "sublog": [
+                                {
+                                    "type": "OK",
+                                    "reason": "the type 'object' with the value of 'param' was evaluated as true / see $sublog",
+                                    "sublog": [
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'object' requires a primitive type 'object' and the value of 'param' is a primitive type 'object' value"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "field checking is disabled"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'object' has no type restriction"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'object' has no value restriction"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'object' has no pattern restriction"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]);
+
+            ltypeTestExpectError( "PRIMITIVETEST_02_OBJECT_WITH_NULL", function () {
+                return lcast( "object", null );
+            }, [
+                {
+                    "result": "ERROR",
+                    "log": [
+                        {
+                            "type": "Object Type Mismatch",
+                            "reason": "the script 'object' with the value of 'param' was evaluated as false / see $sublog",
+                            "sublog": [
+                                {
+                                    "type": "Object Type Mismatch",
+                                    "reason": "the type 'object' with the value of 'param' was evaluated as false / see $sublog",
+                                    "sublog": [
+                                        {
+                                            "type": "Primitive Type Mismatch",
+                                            "reason": "the type 'object' requires a primitive type 'object' and the value of 'param' is a primitive type 'object' value"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]);
+            ltypeTestExpectValue( "PRIMITIVETEST_03_NULL", function () {
+                return lcast( "null", null );
+            }, [
+                {
+                    "result": "NORMAL",
+                    "log": [
+                        {
+                            "type": "OK",
+                            "reason": "the script 'null' with the value of 'param' was evaluated as true / see $sublog",
+                            "sublog": [
+                                {
+                                    "type": "OK",
+                                    "reason": "the type 'null' with the value of 'param' was evaluated as true / see $sublog",
+                                    "sublog": [
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'null' requires a primitive type 'null' and the value of 'param' is a primitive type 'object' value"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "field checking is disabled"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'null' has no type restriction"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'null' has no value restriction"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'null' has no pattern restriction"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]);
+
+            ltypeTestExpectError( "PRIMITIVETEST_04_NULL_WITH_OBJECT", function () {
+                return lcast( "null", {} );
+            }, [
+                {
+                    "result": "ERROR",
+                    "log": [
+                        {
+                            "type": "Object Type Mismatch",
+                            "reason": "the script 'null' with the value of 'param' was evaluated as false / see $sublog",
+                            "sublog": [
+                                {
+                                    "type": "Object Type Mismatch",
+                                    "reason": "the type 'null' with the value of 'param' was evaluated as false / see $sublog",
+                                    "sublog": [
+                                        {
+                                            "type": "Primitive Type Mismatch",
+                                            "reason": "the type 'null' requires a primitive type 'null' and the value of 'param' is a primitive type 'object' value"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]);
+
+            ltypeTestExpectValue( "PRIMITIVETEST_05_ANY", function () {
+                return lcast( "any", 'hello' );
+            }, [
+                {
+                    "result": "NORMAL",
+                    "log": [
+                        {
+                            "type": "OK",
+                            "reason": "the script 'any' with the value of 'param' was evaluated as true / see $sublog",
+                            "sublog": [
+                                {
+                                    "type": "OK",
+                                    "reason": "the type 'any' with the value of 'param' was evaluated as true / see $sublog",
+                                    "sublog": [
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'any' requires a primitive type 'any' and the value of 'param' is a primitive type 'string' value"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "field checking is disabled"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'any' has no type restriction"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'any' has no value restriction"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'any' has no pattern restriction"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]);
+
+            ltypeTestExpectError( "PRIMITIVETEST_06_ANY_WITH_UNDEFINED", function () {
+                return lcast( "any", undefined );
+            }, [
+                {
+                    "result": "ERROR",
+                    "log": [
+                        {
+                            "type": "Object Type Mismatch",
+                            "reason": "the script 'any' with the value of 'param' was evaluated as false / see $sublog",
+                            "sublog": [
+                                {
+                                    "type": "Object Type Mismatch",
+                                    "reason": "the type 'any' with the value of 'param' was evaluated as false / see $sublog",
+                                    "sublog": [
+                                        {
+                                            "type": "Primitive Type Mismatch",
+                                            "reason": "the type 'any' requires a primitive type 'any' and the value of 'param' is a primitive type 'undefined' value"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]);
+
+            ltypeTestExpectError( "PRIMITIVETEST_06_ANY_WITH_UNDEFINED2", function () {
+                return lcast( "any", lcast.UNDEFINED_PROPERTY );
+            }, [
+                {
+                    "result": "ERROR",
+                    "log": [
+                        {
+                            "type": "Object Type Mismatch",
+                            "reason": "the script 'any' with the value of 'param' was evaluated as false / see $sublog",
+                            "sublog": [
+                                {
+                                    "type": "Object Type Mismatch",
+                                    "reason": "the type 'any' with the value of 'param' was evaluated as false / see $sublog",
+                                    "sublog": [
+                                        {
+                                            "type": "Primitive Type Mismatch",
+                                            "reason": "the type 'any' requires a primitive type 'any' and the value of 'param' is a primitive type 'undefined' value"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]);
+
+            ltypeTestExpectValue( "PRIMITIVETEST_07_ARRAY", function () {
+                return lcast( "array", [] );
+            }, [
+                {
+                    "result": "NORMAL",
+                    "log": [
+                        {
+                            "type": "OK",
+                            "reason": "the script 'array' with the value of 'param' was evaluated as true / see $sublog",
+                            "sublog": [
+                                {
+                                    "type": "OK",
+                                    "reason": "the type 'array' with the value of 'param' was evaluated as true / see $sublog",
+                                    "sublog": [
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'array' requires a primitive type 'array' and the value of 'param' is a primitive type 'object' value"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "field checking is disabled"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'array' has no type restriction"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'array' has no value restriction"
+                                        },
+                                        {
+                                            "type": "OK",
+                                            "reason": "the type 'array' has no pattern restriction"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]);
+            ltypeTestExpectError( "PRIMITIVETEST_07_ARRAY_WITH_NULL", function () {
+                return lcast( "array", null );
+            }, [
+                {
+                    "result": "ERROR",
+                    "log": [
+                        {
+                            "type": "Object Type Mismatch",
+                            "reason": "the script 'array' with the value of 'param' was evaluated as false / see $sublog",
+                            "sublog": [
+                                {
+                                    "type": "Object Type Mismatch",
+                                    "reason": "the type 'array' with the value of 'param' was evaluated as false / see $sublog",
+                                    "sublog": [
+                                        {
+                                            "type": "Primitive Type Mismatch",
+                                            "reason": "the type 'array' requires a primitive type 'array' and the value of 'param' is a primitive type 'object' value"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]);
+        }
         
         t1();
         function t1() {
@@ -169,7 +493,7 @@
             }, 
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -221,7 +545,7 @@
             }, 
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -309,7 +633,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -361,7 +685,7 @@
             },
                 [ 
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -440,7 +764,7 @@
                         ]
                     },
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -492,7 +816,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -571,7 +895,7 @@
                         ]
                     },
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -617,7 +941,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -696,7 +1020,7 @@
                         ]
                     },
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -733,7 +1057,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -777,7 +1101,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -821,7 +1145,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -865,7 +1189,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -909,7 +1233,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -956,7 +1280,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -1002,7 +1326,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -1049,7 +1373,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -1097,7 +1421,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -1146,7 +1470,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -1195,7 +1519,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -1239,7 +1563,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -1283,7 +1607,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -1337,7 +1661,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -1392,7 +1716,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -1508,7 +1832,7 @@
                         ]
                     },
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -1553,7 +1877,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -1669,7 +1993,7 @@
                         ]
                     },
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -1713,7 +2037,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -1829,7 +2153,7 @@
                         ]
                     },
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -1865,7 +2189,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -1981,7 +2305,7 @@
                         ]
                     },
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -2010,7 +2334,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -2097,7 +2421,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -2176,7 +2500,7 @@
                         ]
                     },
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -2187,30 +2511,34 @@
                                         "reason": "the type 'null' with the value of 'param' was evaluated as false / see $sublog",
                                         "sublog": [
                                             {
-                                                "type": "OK",
-                                                "reason": "the type 'null' requires a primitive type 'object' and the value of 'param' is a primitive type 'object' value"
-                                            },
-                                            {
-                                                "type": "OK",
-                                                "reason": "field checking is disabled"
-                                            },
-                                            {
-                                                "type": "OK",
-                                                "reason": "the type 'null' has no type restriction"
-                                            },
-                                            {
-                                                "type": "Value Unmatched",
-                                                "reason": "the value of 'param' should be one of $leqValues but actually $objectValue",
-                                                "leqValues": [
-                                                    null
-                                                ],
-                                                "objectValue": {
-                                                    "num": 1,
-                                                    "LTYPE": [
-                                                        "LNumber"
-                                                    ]
-                                                }
+                                                "type": "Primitive Type Mismatch",
+                                                "reason": "the type 'null' requires a primitive type 'null' and the value of 'param' is a primitive type 'object' value"
                                             }
+                                            // {
+                                            //     "type": "OK",
+                                            //     "reason": "the type 'null' requires a primitive type 'object' and the value of 'param' is a primitive type 'object' value"
+                                            // },
+                                            // {
+                                            //     "type": "OK",
+                                            //     "reason": "field checking is disabled"
+                                            // },
+                                            // {
+                                            //     "type": "OK",
+                                            //     "reason": "the type 'null' has no type restriction"
+                                            // },
+                                            // {
+                                            //     "type": "Value Unmatched",
+                                            //     "reason": "the value of 'param' should be one of $leqValues but actually $objectValue",
+                                            //     "leqValues": [
+                                            //         null
+                                            //     ],
+                                            //     "objectValue": {
+                                            //         "num": 1,
+                                            //         "LTYPE": [
+                                            //             "LNumber"
+                                            //         ]
+                                            //     }
+                                            // }
                                         ]
                                     },
                                     {
@@ -2251,7 +2579,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -2263,7 +2591,8 @@
                                         "sublog": [
                                             {
                                                 "type": "OK",
-                                                "reason": "the type 'null' requires a primitive type 'object' and the value of 'param' is a primitive type 'object' value"
+                                                // "reason": "the type 'null' requires a primitive type 'object' and the value of 'param' is a primitive type 'object' value"
+                                                "reason": "the type 'null' requires a primitive type 'null' and the value of 'param' is a primitive type 'object' value"
                                             },
                                             {
                                                 "type": "OK",
@@ -2275,7 +2604,8 @@
                                             },
                                             {
                                                 "type": "OK",
-                                                "reason": "'param' is equivalent with one of objects in LEQU defintion"
+                                                // "reason": "'param' is equivalent with one of objects in LEQU defintion"
+                                                "reason": "the type 'null' has no value restriction"
                                             },
                                             {
                                                 "type": "OK",
@@ -2299,7 +2629,7 @@
             ltypeTestExpectError( "", function () {
                 return lcast( "*LObject", { obj:1 } );
             },{
-                "status": "ERROR",
+                "result": "ERROR",
                 "log": [
                     {
                         "type": "Property Type Mismatch",
@@ -2353,7 +2683,7 @@
                     obj2:"world",
                 });
             },{
-                "status": "NORMAL",
+                "result": "NORMAL",
                 "log": [
                     {
                         "type": "OK",
@@ -2498,7 +2828,7 @@
                     obj2:"world",
                 });
             },{
-                "status": "NORMAL",
+                "result": "NORMAL",
                 "log": [
                     {
                         "type": "OK",
@@ -2648,7 +2978,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -2843,7 +3173,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -3020,7 +3350,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -3133,7 +3463,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -3233,7 +3563,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -3458,7 +3788,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -3664,7 +3994,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -3805,7 +4135,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -4052,7 +4382,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -4096,7 +4426,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -4182,7 +4512,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -4232,7 +4562,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -4290,7 +4620,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -4338,7 +4668,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -4371,7 +4701,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -4506,7 +4836,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -4742,7 +5072,7 @@
             },
                 [
                     {
-                        "status": "NORMAL",
+                        "result": "NORMAL",
                         "log": [
                             {
                                 "type": "OK",
@@ -4806,7 +5136,7 @@
             },
                 [
                     {
-                        "status": "ERROR",
+                        "result": "ERROR",
                         "log": [
                             {
                                 "type": "Object Type Mismatch",
@@ -4881,5 +5211,5 @@
 
         ltestEnd();
     }
-    ltest();
+    // ltest();
     

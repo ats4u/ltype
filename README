@@ -1,9 +1,175 @@
-ltype.js
-An Extremely Lightweight Type Checking System for JavaScript
+/*
+    LTYPE - A Very Simple Non-Prototype-Based Type Management System
 
-Written by Ats Okasan (I'm a Japanese)
-http://ats.oka.nu/
-ats.creativity@gmail.com
+    Author :  Ats Okasan (I'm a Japanese)
+    Website : http://ats.oka.nu/  https://github.com/ats4u
+    mailto : ats.creativity@gmail.com
+    Licence : BSD licence
+    Date : 25 Apr,2013
+*/
+
+/* ABSTRACT */
+
+LTYPE is a type management system. I designed this for checking runtime type
+consistency and hopefully it is also useful for defineing JSON type schema and
+checking runtime objects's consistency.
+
+
+/* MOTIVATION */
+
+JavaScript has a prototype-based type system. The prototype-based type system
+only checks inheritance relationship of objects and is not very good at
+implements polymorphism because of lacking abillity to define abstract
+functions.
+
+If you want to implement Java-like interface-based objects, you usually get
+poor results because prototype-based type management only allows single
+inheritance.
+
+I designed LTYPE to implement an interface-based runtime type checking system. 
+
+
+/* HOW THIS MODULE CAN BE USED */
+
+    // It easilly messes your code up when you need to check consistency of the arguments.
+    function someVeryComplexFunctionWhichIsVeryDifficultToDebug( p1,p2,p3,p4,p5,...,p50 ) {
+        if ( p1.foo == 1 && p1.bum == '1' && p2.bar == 12 & .... ) {
+            dothis();
+        } else {
+            dothat();
+        }
+    }
+    
+    // ltype let you do in this way :
+    function someVeryComplexFunctionWhichIsVeryDifficultToDebug( p1,p2,p3,p4,p5,...,p50 ) {
+        // lcast throws an exception when the passed object is not consistent with the predefined class.
+        lcast( 'SomePredifinedClass1', p1 ); 
+        lcast( 'SomePredifinedClass2', p2 ); 
+        lcast( 'number', p3 ); 
+        lcast( 'string', p4 ); 
+        // and so on ...
+    }
+
+/* HOW TO USE */
+
+    // BASIC USAGE 
+
+    // initialize.
+    var lcast = lcompile();
+
+    // lcast is a closure...  function lcast( typedef, value ) {...}
+
+    // check if (typeof {} == 'object') otherwise this throws an exception.
+    lcast( 'object', {}       ); // [OK] this won't throw any exception.
+
+    // check if (typeof 1 == 'object') otherwise this throws an exception.
+    lcast( 'object',  1       ); // [FAIL]  this throws an exception.
+
+    // check if (typeof 'HELLO' == 'object') otherwise this throws an exception.
+    lcast( 'object', 'HELLO'  ); // [FAIL]  this throws an exception.
+
+    // you can use any of typeof-string values :
+    //     "undefined","function","object","boolean","string","number"
+    
+    // say 'string' ...
+    lcast( 'string', {}       ); // [FAIL]
+    lcast( 'string',  1       ); // [FAIL]
+    lcast( 'string', 'HELLO'  ); // [OK] 
+
+    // say 'number' ...
+    lcast( 'number', {}       ); // [FAIL]
+    lcast( 'number',  1       ); // [OK]
+    lcast( 'number', 'HELLO'  ); // [FAIL] 
+
+    // there are three pseudo typeof-string values : 
+    //     'any', 'null', 'array'
+
+    // 'any' matches with any type but 'undefined' so this throws no exception.
+    lcast( 'any', value ); // [OK] this won't throw any exception.
+
+    // 'array' matches with array values.
+    lcast( 'array', [1,2,3] ); // [OK] this won't throw any exception.
+    lcast( 'array', {}      ); // [FAIL] 
+    lcast( 'array', 1       ); // [FAIL] 
+    lcast( 'array', 'hello  ); // [FAIL] 
+
+    // [NOTICE] null value matches if and only if the typedef parameter is 'null'.
+    lcast( 'null',    null ); // [OK]
+    lcast( 'object',  null ); // [FAIL]
+    lcast( 'array',   null ); // [FAIL]
+    lcast( 'number',  null ); // [FAIL]
+    lcast( 'string',  null ); // [FAIL]
+
+    // [NOTICE] Every non-null types do not match with null.
+    lcast( 'null', {}         ); // [FAIL] 
+    lcast( 'null',  1         ); // [FAIL]
+    lcast( 'null', 'hello'    ); // [FAIL]
+    lcast( 'null', []         ); // [FAIL]
+    lcast( 'null', undefined  ); // [FAIL]
+
+    // Let's call this typeof string with a little extension as "typeofex" here.
+
+
+/* HOW TO USE 2 */
+
+    // So far, the parameter 'typedef' was typeofex strings. This can also be objects.
+    // Set typeofex string to the LTYPEOF property on the parameter object as below :
+    lcast( { LTYPEOF: 'object' }, {} ); // [OK] 
+    lcast(            'object'  , {} ); // [OK] the result above is exactly same with this.
+    
+    // some more examples.
+    lcast( { LTYPEOF: 'object' },  1        ); // [FAIL] same as lcast( 'object', 1 ); 
+    lcast( { LTYPEOF: 'number' }, "hello"   ); // [FAIL] same as lcast( 'number', "hello" ); 
+    lcast( { LTYPEOF: 'string' }, null      ); // [FAIL] same as lcast( 'string', null ); 
+    lcast( { LTYPEOF: 'null'   }, undefined ); // [FAIL] same as lcast( 'null'  , undefined ); 
+
+    // passing an object to typedef is more powerful than passing a string.
+
+    // you can performe field type checking by using LFIELDS property.
+    var typedef = { 
+        LTYPEOF: 'object', 
+        LFIELDS: {
+            name : 'string', // you can set a typeofex string.
+            age  : 'number', // you can set a typeofex string.
+        }, 
+    };
+    lcast( typedef, { name : 'hello', age: 20   }); // [OK]
+    lcast( typedef, { name : 'hello', age: '20' }); // [FAIL] the value of 'age' property must be a number.
+
+
+
+
+
+
+
+    
+
+
+
+    /* USAGE for checking interface */
+        // initialize
+        var lcast = lcompile([
+            {
+            },
+        ]);
+
+        // preparing a test value. 
+        var value = {};
+
+        // check if (typeof value =='object'). this throws an exception if failed.
+        try {
+            lcast( 'object', value );
+        } catch ( e ) {
+            console.error( e ); // this will not happen.
+        }
+
+    /* USAGE for checking interface */
+
+
+
+
+
+/* FILES */
 
 ltype.js
     ltype's main file.
@@ -13,4 +179,11 @@ ltest.js
 
 ltype_test.js
     Defines test patterns.
+
+ltype_test.html
+    A HTML file that executes unit test.
+    
+
+
+
 

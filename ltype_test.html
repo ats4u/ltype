@@ -3,5 +3,20 @@
         <script src="ltype.js" ></script>
         <script src="ltest.js" ></script>
         <script src="ltype_test.js" ></script>
+        <script>
+            var err=null;
+            try {
+                ltest();
+            } catch (e) {
+                err=e;
+            }
+            if ( err != null ) {
+                document.write("<span style='color:red;font-size:larger;font-weight:bolder;'>" + err + "</span><br/>" );
+            }
+            document.write("See the browser's console for further information.<br/>" );
+            if ( err != null ) {
+                throw err;
+            }
+        </script>
     </body>
 </html>
