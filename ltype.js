@@ -40,8 +40,20 @@
         } else if ( o1==null || o2 == null ) {
             return false;
         } else if ( (typeof o1) ==  'object' && (typeof o2) == 'object' ) {
-            var p1=Object.keys(o1);
-            var p2=Object.keys(o2);
+            var p1=[];
+            var p2=[];
+            // var p1=Object.keys(o1);
+            // var p2=Object.keys(o2);
+            for ( var i in o1 ) {
+                if ( i != 'LTYPE' && i != 'LWHEN' ) {
+                    p1.push( i );
+                }
+            }
+            for ( var i in o2 ) {
+                if ( i != 'LTYPE' && i != 'LWHEN' ) {
+                    p2.push( i );
+                }
+            }
             if ( p1.length != p2.length ) {
                 return false;
             } else {
@@ -323,6 +335,7 @@
     function _ltypeobject_revert_prefix( doCheckFields, argTypeObject ) {
         // __lconsole().log( argTypeObject.LTYPEOF );
         if ( argTypeObject != null && argTypeObject.LTYPEOF != undefined && argTypeObject.LTYPEOF=='object' ) {
+         // return doCheckFields ? "*" : "";
             return doCheckFields ? "" : "*";
         } else {
             return "";
@@ -473,6 +486,10 @@
                 }
                 function installProc() {
                     if ( doinit && argTypeObject.LNAME != null ) {
+                        if ( objectValue == null || typeof objectValue!='object' ) {
+                            sublog.push( { type:"OK", reason: "unable to add the value '"+argTypeName+"' to the Run Time Type Information object of the current value so ignored. typeof(" + objectValue + ")=='" + (typeof objectValue) + "'" } );
+                            return;
+                        }
                         var before=[],after=[];
                         if ( objectValue.LTYPE != undefined ) {
                             before =  before.concat( objectValue.LTYPE );
@@ -491,16 +508,30 @@
                     return true;
                 }
 
-                // CONDITION 1
-                if (argTypeObject.LIS == undefined ) {
-                    sublog.push( { type:"OK", reason : "the type '" + argTypeName+ "' has no type restriction" } );
-                    return true;
-                } 
+                // // CONDITION1 (OLD 2013/4/24)
+                // if (argTypeObject.LIS == undefined ) {
+                //     sublog.push( { type:"OK", reason : "the type '" + argTypeName+ "' has no type restriction" } );
+                //     return true;
+                // } 
+                // var typeLIS = argTypeObject.LIS;
 
-                var typeLIS = argTypeObject.LIS;
-                // if ( argTypeObject.LNAME != undefined ) {
-                //     typeLIS.unshift( argTypeObject.LNAME );
-                // }
+                // CONDITION1 (NEW)
+                var typeLIS = [];
+                if ( argTypeObject.LIS != undefined  ){
+                    typeLIS = typeLIS.concat( argTypeObject.LIS );
+                }
+                if ( argTypeObject.LNAME != undefined ) {
+                    var found = false;
+                    for ( var i=0; i<typeLIS.length; i++ ) {
+                        if ( typeLIS[i] == argTypeObject.LNAME ) {
+                            found=true;
+                            break;
+                        }
+                    }
+                    if ( ! found ) {
+                        typeLIS.unshift( argTypeObject.LNAME );
+                    }
+                }
                 
                 // CONDITION 2
                 var objectLIS /*string[]*/ = _ltypeof( objectValue );

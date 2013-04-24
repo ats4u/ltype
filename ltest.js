@@ -32,8 +32,9 @@
             if ( _ltest_filter_func( _ltest_values[i].status ) ) {
                 __ltestConsole.log( "func", _ltest_values[i].func );
                 __ltestConsole.log( "status", _ltest_values[i].status );
-                __ltestConsole.log( "expected", JSON.stringify( _ltest_values[i].expected,undefined, 4 ) );
+                // __ltestConsole.log( "expected", JSON.stringify( _ltest_values[i].expected,undefined, 4 ) );
                 __ltestConsole.log( "output",   JSON.stringify( _ltest_values[i].output,undefined, 4 ) );
+                __ltestConsole.log();
             }
         }
         __ltestConsole.log( "<<REPORT " );
@@ -68,9 +69,9 @@
     var _ltest_current_unit_id = "";
     function ltestUnitBegin(name){
         _ltest_unit_name = name == undefined ? "" : name;
-        var id = "TEST("+_ltest_name+")("+ _ltest_unit_name + ")" + (++_ltest_index);
+        var id = "TEST("+_ltest_name+")("+ _ltest_unit_name + ")" /*+ (_ltest_index)*/;
         _ltest_current_unit_id = id;
-        __ltestConsole.log(id.trim());
+        _ltest_index ++;
         return id;
     }
     function ltestUnitEnd() {
@@ -83,12 +84,14 @@
         var f =undefined;
         // __ltestConsole.log( func );
         // __ltestConsole.log( JSON.stringify( output,f,4) );
-        if ( expected == null ) {
+        if ( expected === null ) {
             // __ltestConsole.log( output, expected );
             _ltest_values.push( { name : ltestUnitCurrentID(), func:func, status: "NEQ", expected : '_undefined_', output : output } );
+        } else if ( expected === undefined ) {
+            _ltest_values.push( { name : ltestUnitCurrentID(), func:func, status: "EQU", expected : 'not specified', output : output } );
         } else {
             if ( ( typeof expected ) =='function' ) {
-                var status = expected( output );
+                var status = expected( output ) ? "EQU" : "NEQ";
                 _ltest_values.push( { name : ltestUnitCurrentID(), func:func, status: status, expected : 'function', output : output } );
             } else {
                 if ( eq( output, expected ) ) {

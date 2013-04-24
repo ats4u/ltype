@@ -5,9 +5,6 @@
         <script src="ltype_test.js" ></script>
         <script>
             function __ltestConsoleFunc() {
-                if ( arguments.length == 0 ) {
-                    return;
-                }
                 for ( var i=0; i<arguments.length; i++ ) {
                     if ( 0<i  ){
                         document.write( "&nbsp;" );
@@ -32,6 +29,7 @@
                 log:__ltestConsoleFunc,
                 error:__ltestConsoleFunc,
             });
+            ltestSetFilterFunction( 'ALL' );
 
             document.write("<div style='font-size:9pt;line-height:1em;'>" );
             var err=null;
