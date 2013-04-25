@@ -22,9 +22,10 @@
         ltestClear() 
     };
     function ltestEnd()   { 
-        __ltestConsole.log( "REPORT >> " );
+        __ltestConsole.log( "REPORT &gt;&gt;" );
         var foundError = false;
         for ( var i=0;i<_ltest_values.length; i++ ){
+            __ltestConsole.log('----------------------------------------------------------------------------------------------------------------');
             __ltestConsole.log( _ltest_values[i].name );
             if ( _ltest_values[i].status != 'EQU' ) {
                 foundError = true;
@@ -37,7 +38,7 @@
                 __ltestConsole.log();
             }
         }
-        __ltestConsole.log( "<<REPORT " );
+        __ltestConsole.log( "&lt;&lt;REPORT" );
         if( foundError ) {
             throw "Failed : see console.";
         } else {
@@ -69,7 +70,8 @@
     var _ltest_current_unit_id = "";
     function ltestUnitBegin(name){
         _ltest_unit_name = name == undefined ? "" : name;
-        var id = "TEST("+_ltest_name+")("+ _ltest_unit_name + ")" /*+ (_ltest_index)*/;
+        // var id = "TEST("+_ltest_name+")("+ _ltest_unit_name + ")" /*+ (_ltest_index)*/;
+        var id = _ltest_unit_name;
         _ltest_current_unit_id = id;
         _ltest_index ++;
         return id;

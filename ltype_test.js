@@ -53,6 +53,17 @@
         }
     };
 
+    var ltypeTestAuto = function( name, func ) {
+        // delegating to ltestUnit();
+        if ( 0<=name.indexOf( "[NORMAL]" ) ) {
+            return ltestUnit( name, func, __ltypeTestExpectNormal );
+        } else if ( 0<=name.indexOf( "[ERROR]" ) ) {
+            return ltestUnit( name, func, __ltypeTestExpectError );
+        } else {
+            throw '"'+name + '" does not contain valid token.';
+        }
+    };
+
     var ltypeTestExpectValue = function( name, func ) {
         // delegating to ltestUnit();
         return ltestUnit( name, func, __ltypeTestExpectNormal );
@@ -66,102 +77,333 @@
 
     function ltest() {
         LTYPE_TEST_MODE = true;
-        ltestBegin('basic');
+        ltestBegin('TEST');
 
         // peq_test();
         //
 
-        t0();
-        function t0() {
+        t00();
+        function t00() {
             ltestSetUnitExecute( null );
 
-            // NO0
-            // if no argument was passed to lcompile, it treats as an empty array.
-            ltypeTestExpectValue( "NO_PARAM", function () {
+            ltypeTestExpectValue( "ILLEGAL_COMPILE_NO_PARAM[NORMAL] (if no argument/undefined was passed to lcompile, it treats as an empty array.)", function () {
                 var lcast = lcompile(); 
                 return 'ok';
             });
 
-            // NO1
-            // if null was passed to lcompile, throw error.
-            ltypeTestExpectError( "ILLEGAL_COMPILE_NULL", function () {
+            ltypeTestExpectError( "ILLEGAL_COMPILE_NULL[ERROR] (lcompile() throws an exception if the argument was null.)", function () {
                 return lcompile( null );
             });
 
-            // NO2
-            // if lcompile gets any object other than array , throw error.
-            ltypeTestExpectError( "ILLEGAL_COMPILE_NUM", function () {
+            ltypeTestExpectError( "ILLEGAL_COMPILE_NUM[ERROR] (lcompile throws an exception if lcompile gets any value other than an array.)", function () {
                 return lcompile( 1 );
-            },{ 
-                "type": "ERROR",
-                "value": "Illegal Argument (malformed parameter object) : 1"
             });
 
-            // NO3
-            ltypeTestExpectError( "ILLEGAL_COMPILE_STR", function () {
-                return lcompile( "a" );
+            ltypeTestExpectError( "ILLEGAL_COMPILE_STR[ERROR] (lcompile throws an exception if lcompile gets any value other than an array.)", function () {
+                return lcompile( "hello" );
             });
 
-            // NO4
-            ltypeTestExpectError( "ILLEGAL_COMPILE_NO_LTYPEOF", function () {
+            ltypeTestExpectError( "ILLEGAL_COMPILE_NO_LTYPEOF[ERROR] (lcompile throws an exception if any of typedef-object contains no LTYPEOF property.)", function () {
                 return lcompile([
                     {LNAME:"test", /* LTYPEOF:'any', */  },
                 ]);
             });
-
-            // NO5
-            ltypeTestExpectError( "ILLEGAL_COMPILE_NO_LNAME", function () {
+            ltypeTestExpectError( "ILLEGAL_COMPILE_NO_LNAME[ERROR] (lcompile throws an exception if any of typeof-object contains no LNAME property.)", function () {
                 return lcompile([
                     {/*LNAME:"test",*/ LTYPEOF:'any',  },
                 ]);
             });
 
-            // throw new Error( "Illegal Argument(found an object which has no LNAME)" + JSON.stringify( ltypes_arr ) );
-            // throw new Error( "Illegal Argument(found an object which has no LTYPEOF)" + JSON.stringify( ltypes_arr ) );
         }
 
-        // t01() ;
+
+        t01() ;
         function t01() {
+            // [ "undefined" , "boolean" , "number" , "string" , "function", "object" ]
+            // + "null", "array"
             ltestSetUnitExecute( ltestUnitExecute2 );
-            ltypeTestExpectValue( "UNDEFINED_FIELD01",  function () {
-                var lcast = lcompile([]); 
-                return lcast("undefined",undefined );
-            });
-            ltypeTestExpectValue( "UNDEFINED_FIELD02",  function () {
-                var lcast = lcompile([]); 
-                return lcast("any",undefined );
-            });
+            var lcast = lcompile(); 
 
-            ltypeTestExpectValue( "UNDEFINED FIELD2",  function () { 
-                lcast = lcompile([ 
-                    {
-                        LNAME:"LNumber",   
-                        LTYPEOF:'object',  
-                        LIS :['LNumber', ],  
-                        LFIELDS: { 
-                            num:"number||undefined", 
-                        }, 
-                    }, 
-                ]);
-                return lcast("*LNumber",{});
-            });
+            // 
+            ltypeTestAuto( "BASICTYPE_ANY_WITH_UNDEFINED           [ERROR]",   function () { return lcast( "any"       , undefined     ) } );
+            ltypeTestAuto( "BASICTYPE_ANY_WITH_BOOLEAN_TRUE        [NORMAL]",  function () { return lcast( "any"       , true          ) } );
+            ltypeTestAuto( "BASICTYPE_ANY_WITH_BOOLEAN_FALSE       [NORMAL]",  function () { return lcast( "any"       , false         ) } );
+            ltypeTestAuto( "BASICTYPE_ANY_WITH_NUMBER_1            [NORMAL]",  function () { return lcast( "any"       , 1             ) } );
+            ltypeTestAuto( "BASICTYPE_ANY_WITH_NUMBER_E            [NORMAL]",  function () { return lcast( "any"       , 1.0e10        ) } );
+            ltypeTestAuto( "BASICTYPE_ANY_WITH_NUMBER_NaN          [NORMAL]",  function () { return lcast( "any"       , NaN           ) } );
+            ltypeTestAuto( "BASICTYPE_ANY_WITH_STRING              [NORMAL]",  function () { return lcast( "any"       , 'hello'       ) } );
+            ltypeTestAuto( "BASICTYPE_ANY_WITH_FUNCTION            [NORMAL]",  function () { return lcast( "any"       , function() {} ) } );
+            ltypeTestAuto( "BASICTYPE_ANY_WITH_OBJECT              [NORMAL]",  function () { return lcast( "any"       , {}            ) } );
+            ltypeTestAuto( "BASICTYPE_ANY_WITH_NULL                [NORMAL]",  function () { return lcast( "any"       , null          ) } );
+            ltypeTestAuto( "BASICTYPE_ANY_WITH_ARRAY               [NORMAL]",  function () { return lcast( "any"       , []            ) } );
 
-            var lcast;
-            ltypeTestExpectValue( "UNDEFINED FIELD3",  function () { 
-                lcast = lcompile([ 
-                    {
-                        LNAME:"LNumber",   
-                        LTYPEOF:'object',  
-                        LIS :['LNumber', ],  
-                        LFIELDS: { 
-                            num:"number||undefined", 
-                        }, 
-                    }, 
-                ]);
-                return lcast("*LNumber",{});
-            });
+            ltypeTestAuto( "BASICTYPE_NULL_WITH_UNDEFINED          [ERROR]",   function () { return lcast( "null"      , undefined     ) } );
+            ltypeTestAuto( "BASICTYPE_NULL_WITH_BOOLEAN_TRUE       [ERROR]",   function () { return lcast( "null"      , true          ) } );
+            ltypeTestAuto( "BASICTYPE_NULL_WITH_BOOLEAN_FALSE      [ERROR]",   function () { return lcast( "null"      , false         ) } );
+            ltypeTestAuto( "BASICTYPE_NULL_WITH_NUMBER_1           [ERROR]",   function () { return lcast( "null"      , 1             ) } );
+            ltypeTestAuto( "BASICTYPE_NULL_WITH_NUMBER_E           [ERROR]",   function () { return lcast( "null"      , 1.0e10        ) } );
+            ltypeTestAuto( "BASICTYPE_NULL_WITH_NUMBER_NaN         [ERROR]",   function () { return lcast( "null"      , NaN           ) } );
+            ltypeTestAuto( "BASICTYPE_NULL_WITH_STRING             [ERROR]",   function () { return lcast( "null"      , 'hello'       ) } );
+            ltypeTestAuto( "BASICTYPE_NULL_WITH_FUNCTION           [ERROR]",   function () { return lcast( "null"      , function() {} ) } );
+            ltypeTestAuto( "BASICTYPE_NULL_WITH_OBJECT             [ERROR]",   function () { return lcast( "null"      , {}            ) } );
+            ltypeTestAuto( "BASICTYPE_NULL_WITH_NULL               [NORMAL]",  function () { return lcast( "null"      , null          ) } );
+            ltypeTestAuto( "BASICTYPE_NULL_WITH_ARRAY              [ERROR]",   function () { return lcast( "null"      , []            ) } );
+
+            ltypeTestAuto( "BASICTYPE_ARRAY_WITH_UNDEFINED         [ERROR]",   function () { return lcast( "array"     , undefined     ) } );
+            ltypeTestAuto( "BASICTYPE_ARRAY_WITH_BOOLEAN_TRUE      [ERROR]",   function () { return lcast( "array"     , true          ) } );
+            ltypeTestAuto( "BASICTYPE_ARRAY_WITH_BOOLEAN_FALSE     [ERROR]",   function () { return lcast( "array"     , false         ) } );
+            ltypeTestAuto( "BASICTYPE_ARRAY_WITH_NUMBER_1          [ERROR]",   function () { return lcast( "array"     , 1             ) } );
+            ltypeTestAuto( "BASICTYPE_ARRAY_WITH_NUMBER_E          [ERROR]",   function () { return lcast( "array"     , 1.0e10        ) } );
+            ltypeTestAuto( "BASICTYPE_ARRAY_WITH_NUMBER_NaN        [ERROR]",   function () { return lcast( "array"     , NaN           ) } );
+            ltypeTestAuto( "BASICTYPE_ARRAY_WITH_STRING            [ERROR]",   function () { return lcast( "array"     , 'hello'       ) } );
+            ltypeTestAuto( "BASICTYPE_ARRAY_WITH_FUNCTION          [ERROR]",   function () { return lcast( "array"     , function() {} ) } );
+            ltypeTestAuto( "BASICTYPE_ARRAY_WITH_OBJECT            [ERROR]",   function () { return lcast( "array"     , {}            ) } );
+            ltypeTestAuto( "BASICTYPE_ARRAY_WITH_NULL              [ERROR]",   function () { return lcast( "array"     , null          ) } );
+            ltypeTestAuto( "BASICTYPE_ARRAY_WITH_ARRAY             [NORMAL]",  function () { return lcast( "array"     , []            ) } );
+
+            ltypeTestAuto( "BASICTYPE_UNDEFINED_WITH_UNDEFINED     [NORMAL]",  function () { return lcast( "undefined" , undefined     ) } );
+            ltypeTestAuto( "BASICTYPE_UNDEFINED_WITH_BOOLEAN_TRUE  [ERROR]",   function () { return lcast( "undefined" , true          ) } );
+            ltypeTestAuto( "BASICTYPE_UNDEFINED_WITH_BOOLEAN_FALSE [ERROR]",   function () { return lcast( "undefined" , false         ) } );
+            ltypeTestAuto( "BASICTYPE_UNDEFINED_WITH_NUMBER_1      [ERROR]",   function () { return lcast( "undefined" ,  1            ) } );
+            ltypeTestAuto( "BASICTYPE_UNDEFINED_WITH_NUMBER_E      [ERROR]",   function () { return lcast( "undefined" , 1.0e10        ) } );
+            ltypeTestAuto( "BASICTYPE_UNDEFINED_WITH_NUMBER_NaN    [ERROR]",   function () { return lcast( "undefined" , NaN           ) } );
+            ltypeTestAuto( "BASICTYPE_UNDEFINED_WITH_STRING        [ERROR]",   function () { return lcast( "undefined" , 'hello'       ) } );
+            ltypeTestAuto( "BASICTYPE_UNDEFINED_WITH_FUNCTION      [ERROR]",   function () { return lcast( "undefined" , function() {} ) } );
+            ltypeTestAuto( "BASICTYPE_UNDEFINED_WITH_OBJECT        [ERROR]",   function () { return lcast( "undefined" , {}            ) } );
+            ltypeTestAuto( "BASICTYPE_UNDEFINED_WITH_NULL          [ERROR]",   function () { return lcast( "undefined" , null          ) } );
+            ltypeTestAuto( "BASICTYPE_UNDEFINED_WITH_ARRAY         [ERROR]",   function () { return lcast( "undefined" , []            ) } );
+
+            ltypeTestAuto( "BASICTYPE_FUNCTION_WITH_UNDEFINED      [ERROR]",   function () { return lcast( "function"  , undefined     ) } );
+            ltypeTestAuto( "BASICTYPE_FUNCTION_WITH_BOOLEAN_TRUE   [ERROR]",   function () { return lcast( "function"  , true          ) } );
+            ltypeTestAuto( "BASICTYPE_FUNCTION_WITH_BOOLEAN_FALSE  [ERROR]",   function () { return lcast( "function"  , false         ) } );
+            ltypeTestAuto( "BASICTYPE_FUNCTION_WITH_NUMBER_1       [ERROR]",   function () { return lcast( "function"  ,  1            ) } );
+            ltypeTestAuto( "BASICTYPE_FUNCTION_WITH_NUMBER_E       [ERROR]",   function () { return lcast( "function"  , 1.0e10        ) } );
+            ltypeTestAuto( "BASICTYPE_FUNCTION_WITH_NUMBER_NaN     [ERROR]",   function () { return lcast( "function"  , NaN           ) } );
+            ltypeTestAuto( "BASICTYPE_FUNCTION_WITH_STRING         [ERROR]",   function () { return lcast( "function"  , 'hello'       ) } );
+            ltypeTestAuto( "BASICTYPE_FUNCTION_WITH_FUNCTION       [NORMAL]",  function () { return lcast( "function"  , function() {} ) } );
+            ltypeTestAuto( "BASICTYPE_FUNCTION_WITH_OBJECT         [ERROR]",   function () { return lcast( "function"  , {}            ) } );
+            ltypeTestAuto( "BASICTYPE_FUNCTION_WITH_NULL           [ERROR]",   function () { return lcast( "function"  , null          ) } );
+            ltypeTestAuto( "BASICTYPE_FUNCTION_WITH_ARRAY          [ERROR]",   function () { return lcast( "function"  , []            ) } );
+
+            ltypeTestAuto( "BASICTYPE_OBJECT_WITH_UNDEFINED        [ERROR]",   function () { return lcast( "object"    , undefined     ) } );
+            ltypeTestAuto( "BASICTYPE_OBJECT_WITH_BOOLEAN_TRUE     [ERROR]",   function () { return lcast( "object"    , true          ) } );
+            ltypeTestAuto( "BASICTYPE_OBJECT_WITH_BOOLEAN_FALSE    [ERROR]",   function () { return lcast( "object"    , false         ) } );
+            ltypeTestAuto( "BASICTYPE_OBJECT_WITH_NUMBER_1         [ERROR]",   function () { return lcast( "object"    , 1             ) } );
+            ltypeTestAuto( "BASICTYPE_OBJECT_WITH_NUMBER_E         [ERROR]",   function () { return lcast( "object"    , 1.0e10        ) } );
+            ltypeTestAuto( "BASICTYPE_OBJECT_WITH_NUMBER_NaN       [ERROR]",   function () { return lcast( "object"    , NaN           ) } );
+            ltypeTestAuto( "BASICTYPE_OBJECT_WITH_STRING           [ERROR]",   function () { return lcast( "object"    , 'hello'       ) } );
+            ltypeTestAuto( "BASICTYPE_OBJECT_WITH_FUNCTION         [ERROR]",   function () { return lcast( "object"    , function() {} ) } );
+            ltypeTestAuto( "BASICTYPE_OBJECT_WITH_OBJECT           [NORMAL]",  function () { return lcast( "object"    , {}            ) } );
+            ltypeTestAuto( "BASICTYPE_OBJECT_WITH_NULL             [ERROR]",   function () { return lcast( "object"    , null          ) } );
+            ltypeTestAuto( "BASICTYPE_OBJECT_WITH_ARRAY            [ERROR]",   function () { return lcast( "object"    , []            ) } );
+
+            ltypeTestAuto( "BASICTYPE_BOOLEAN_WITH_UNDEFINED       [ERROR]",   function () { return lcast( "boolean"   , undefined     ) } );
+            ltypeTestAuto( "BASICTYPE_BOOLEAN_WITH_BOOLEAN_TRUE    [NORMAL]",  function () { return lcast( "boolean"   , true          ) } );
+            ltypeTestAuto( "BASICTYPE_BOOLEAN_WITH_BOOLEAN_FALSE   [NORMAL]",  function () { return lcast( "boolean"   , false         ) } );
+            ltypeTestAuto( "BASICTYPE_BOOLEAN_WITH_NUMBER_1        [ERROR]",   function () { return lcast( "boolean"   , 1             ) } );
+            ltypeTestAuto( "BASICTYPE_BOOLEAN_WITH_NUMBER_E        [ERROR]",   function () { return lcast( "boolean"   , 1.0e10        ) } );
+            ltypeTestAuto( "BASICTYPE_BOOLEAN_WITH_NUMBER_NaN      [ERROR]",   function () { return lcast( "boolean"   , NaN           ) } );
+            ltypeTestAuto( "BASICTYPE_BOOLEAN_WITH_STRING          [ERROR]",   function () { return lcast( "boolean"   , 'hello'       ) } );
+            ltypeTestAuto( "BASICTYPE_BOOLEAN_WITH_FUNCTION        [ERROR]",   function () { return lcast( "boolean"   , function() {} ) } );
+            ltypeTestAuto( "BASICTYPE_BOOLEAN_WITH_OBJECT          [ERROR]",   function () { return lcast( "boolean"   , {}            ) } );
+            ltypeTestAuto( "BASICTYPE_BOOLEAN_WITH_NULL            [ERROR]",   function () { return lcast( "boolean"   , null          ) } );
+            ltypeTestAuto( "BASICTYPE_BOOLEAN_WITH_ARRAY           [ERROR]",   function () { return lcast( "boolean"   , []            ) } );
+
+            ltypeTestAuto( "BASICTYPE_STRING_WITH_UNDEFINED        [ERROR]",   function () { return lcast( "string"    , undefined     ) } );
+            ltypeTestAuto( "BASICTYPE_STRING_WITH_BOOLEAN_TRUE     [ERROR]",   function () { return lcast( "string"    , true          ) } );
+            ltypeTestAuto( "BASICTYPE_STRING_WITH_BOOLEAN_FALSE    [ERROR]",   function () { return lcast( "string"    , false         ) } );
+            ltypeTestAuto( "BASICTYPE_STRING_WITH_NUMBER_1         [ERROR]",   function () { return lcast( "string"    , 1             ) } );
+            ltypeTestAuto( "BASICTYPE_STRING_WITH_NUMBER_E         [ERROR]",   function () { return lcast( "string"    , 1.0e10        ) } );
+            ltypeTestAuto( "BASICTYPE_STRING_WITH_NUMBER_NaN       [ERROR]",   function () { return lcast( "string"    , NaN           ) } );
+            ltypeTestAuto( "BASICTYPE_STRING_WITH_STRING           [NORMAL]",  function () { return lcast( "string"    , 'hello'       ) } );
+            ltypeTestAuto( "BASICTYPE_STRING_WITH_FUNCTION         [ERROR]",   function () { return lcast( "string"    , function() {} ) } );
+            ltypeTestAuto( "BASICTYPE_STRING_WITH_OBJECT           [ERROR]",   function () { return lcast( "string"    , {}            ) } );
+            ltypeTestAuto( "BASICTYPE_STRING_WITH_NULL             [ERROR]",   function () { return lcast( "string"    , null          ) } );
+            ltypeTestAuto( "BASICTYPE_STRING_WITH_ARRAY            [ERROR]",   function () { return lcast( "string"    , []            ) } );
+
+            ltypeTestAuto( "BASICTYPE_NUMBER_WITH_UNDEFINED        [ERROR]",   function () { return lcast( "number"    , undefined     ) } );
+            ltypeTestAuto( "BASICTYPE_NUMBER_WITH_BOOLEAN_TRUE     [ERROR]",   function () { return lcast( "number"    , true          ) } );
+            ltypeTestAuto( "BASICTYPE_NUMBER_WITH_BOOLEAN_FALSE    [ERROR]",   function () { return lcast( "number"    , false         ) } );
+            ltypeTestAuto( "BASICTYPE_NUMBER_WITH_NUMBER_1         [NORMAL]",  function () { return lcast( "number"    , 1             ) } );
+            ltypeTestAuto( "BASICTYPE_NUMBER_WITH_NUMBER_E         [NORMAL]",  function () { return lcast( "number"    , 1.0e10        ) } );
+            ltypeTestAuto( "BASICTYPE_NUMBER_WITH_NUMBER_NaN       [NORMAL]",  function () { return lcast( "number"    , NaN           ) } );
+            ltypeTestAuto( "BASICTYPE_NUMBER_WITH_STRING           [ERROR]",   function () { return lcast( "number"    , 'hello'       ) } );
+            ltypeTestAuto( "BASICTYPE_NUMBER_WITH_FUNCTION         [ERROR]",   function () { return lcast( "number"    , function() {} ) } );
+            ltypeTestAuto( "BASICTYPE_NUMBER_WITH_OBJECT           [ERROR]",   function () { return lcast( "number"    , {}            ) } );
+            ltypeTestAuto( "BASICTYPE_NUMBER_WITH_NULL             [ERROR]",   function () { return lcast( "number"    , null          ) } );
+            ltypeTestAuto( "BASICTYPE_NUMBER_WITH_ARRAY            [ERROR]",   function () { return lcast( "number"    , []            ) } );
+
+
+            // 
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_UNDEFINED           [ERROR]",   function () { return lcast( { LTYPEOF:"any"       }  ,undefined     ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_BOOLEAN_TRUE        [NORMAL]",  function () { return lcast( { LTYPEOF:"any"       }  ,true          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_BOOLEAN_FALSE       [NORMAL]",  function () { return lcast( { LTYPEOF:"any"       }  ,false         ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_NUMBER_1            [NORMAL]",  function () { return lcast( { LTYPEOF:"any"       }  ,1             ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_NUMBER_E            [NORMAL]",  function () { return lcast( { LTYPEOF:"any"       }  ,1.0e10        ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_NUMBER_NaN          [NORMAL]",  function () { return lcast( { LTYPEOF:"any"       }  ,NaN           ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_STRING              [NORMAL]",  function () { return lcast( { LTYPEOF:"any"       }  ,'hello'       ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_FUNCTION            [NORMAL]",  function () { return lcast( { LTYPEOF:"any"       }  ,function() {} ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_OBJECT              [NORMAL]",  function () { return lcast( { LTYPEOF:"any"       }  ,{}            ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_NULL                [NORMAL]",  function () { return lcast( { LTYPEOF:"any"       }  ,null          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_ARRAY               [NORMAL]",  function () { return lcast( { LTYPEOF:"any"       }  ,[]            ) } );
+
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NULL_WITH_UNDEFINED          [ERROR]",   function () { return lcast( { LTYPEOF:"null"      }  ,undefined     ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NULL_WITH_BOOLEAN_TRUE       [ERROR]",   function () { return lcast( { LTYPEOF:"null"      }  ,true          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NULL_WITH_BOOLEAN_FALSE      [ERROR]",   function () { return lcast( { LTYPEOF:"null"      }  ,false         ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NULL_WITH_NUMBER_1           [ERROR]",   function () { return lcast( { LTYPEOF:"null"      }  ,1             ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NULL_WITH_NUMBER_E           [ERROR]",   function () { return lcast( { LTYPEOF:"null"      }  ,1.0e10        ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NULL_WITH_NUMBER_NaN         [ERROR]",   function () { return lcast( { LTYPEOF:"null"      }  ,NaN           ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NULL_WITH_STRING             [ERROR]",   function () { return lcast( { LTYPEOF:"null"      }  ,'hello'       ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NULL_WITH_FUNCTION           [ERROR]",   function () { return lcast( { LTYPEOF:"null"      }  ,function() {} ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NULL_WITH_OBJECT             [ERROR]",   function () { return lcast( { LTYPEOF:"null"      }  ,{}            ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NULL_WITH_NULL               [NORMAL]",  function () { return lcast( { LTYPEOF:"null"      }  ,null          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NULL_WITH_ARRAY              [ERROR]",   function () { return lcast( { LTYPEOF:"null"      }  ,[]            ) } );
+
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ARRAY_WITH_UNDEFINED         [ERROR]",   function () { return lcast( { LTYPEOF:"array"     }  ,undefined     ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ARRAY_WITH_BOOLEAN_TRUE      [ERROR]",   function () { return lcast( { LTYPEOF:"array"     }  ,true          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ARRAY_WITH_BOOLEAN_FALSE     [ERROR]",   function () { return lcast( { LTYPEOF:"array"     }  ,false         ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ARRAY_WITH_NUMBER_1          [ERROR]",   function () { return lcast( { LTYPEOF:"array"     }  ,1             ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ARRAY_WITH_NUMBER_E          [ERROR]",   function () { return lcast( { LTYPEOF:"array"     }  ,1.0e10        ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ARRAY_WITH_NUMBER_NaN        [ERROR]",   function () { return lcast( { LTYPEOF:"array"     }  ,NaN           ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ARRAY_WITH_STRING            [ERROR]",   function () { return lcast( { LTYPEOF:"array"     }  ,'hello'       ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ARRAY_WITH_FUNCTION          [ERROR]",   function () { return lcast( { LTYPEOF:"array"     }  ,function() {} ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ARRAY_WITH_OBJECT            [ERROR]",   function () { return lcast( { LTYPEOF:"array"     }  ,{}            ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ARRAY_WITH_NULL              [ERROR]",   function () { return lcast( { LTYPEOF:"array"     }  ,null          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_ARRAY_WITH_ARRAY             [NORMAL]",  function () { return lcast( { LTYPEOF:"array"     }  ,[]            ) } );
+
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_UNDEFINED_WITH_UNDEFINED     [NORMAL]",  function () { return lcast( { LTYPEOF:"undefined" }  ,undefined     ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_UNDEFINED_WITH_BOOLEAN_TRUE  [ERROR]",   function () { return lcast( { LTYPEOF:"undefined" }  ,true          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_UNDEFINED_WITH_BOOLEAN_FALSE [ERROR]",   function () { return lcast( { LTYPEOF:"undefined" }  ,false         ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_UNDEFINED_WITH_NUMBER_1      [ERROR]",   function () { return lcast( { LTYPEOF:"undefined" }  , 1            ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_UNDEFINED_WITH_NUMBER_E      [ERROR]",   function () { return lcast( { LTYPEOF:"undefined" }  ,1.0e10        ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_UNDEFINED_WITH_NUMBER_NaN    [ERROR]",   function () { return lcast( { LTYPEOF:"undefined" }  ,NaN           ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_UNDEFINED_WITH_STRING        [ERROR]",   function () { return lcast( { LTYPEOF:"undefined" }  ,'hello'       ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_UNDEFINED_WITH_FUNCTION      [ERROR]",   function () { return lcast( { LTYPEOF:"undefined" }  ,function() {} ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_UNDEFINED_WITH_OBJECT        [ERROR]",   function () { return lcast( { LTYPEOF:"undefined" }  ,{}            ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_UNDEFINED_WITH_NULL          [ERROR]",   function () { return lcast( { LTYPEOF:"undefined" }  ,null          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_UNDEFINED_WITH_ARRAY         [ERROR]",   function () { return lcast( { LTYPEOF:"undefined" }  ,[]            ) } );
+
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_FUNCTION_WITH_UNDEFINED      [ERROR]",   function () { return lcast( { LTYPEOF:"function"  }  ,undefined     ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_FUNCTION_WITH_BOOLEAN_TRUE   [ERROR]",   function () { return lcast( { LTYPEOF:"function"  }  ,true          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_FUNCTION_WITH_BOOLEAN_FALSE  [ERROR]",   function () { return lcast( { LTYPEOF:"function"  }  ,false         ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_FUNCTION_WITH_NUMBER_1       [ERROR]",   function () { return lcast( { LTYPEOF:"function"  }  , 1            ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_FUNCTION_WITH_NUMBER_E       [ERROR]",   function () { return lcast( { LTYPEOF:"function"  }  ,1.0e10        ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_FUNCTION_WITH_NUMBER_NaN     [ERROR]",   function () { return lcast( { LTYPEOF:"function"  }  ,NaN           ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_FUNCTION_WITH_STRING         [ERROR]",   function () { return lcast( { LTYPEOF:"function"  }  ,'hello'       ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_FUNCTION_WITH_FUNCTION       [NORMAL]",  function () { return lcast( { LTYPEOF:"function"  }  ,function() {} ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_FUNCTION_WITH_OBJECT         [ERROR]",   function () { return lcast( { LTYPEOF:"function"  }  ,{}            ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_FUNCTION_WITH_NULL           [ERROR]",   function () { return lcast( { LTYPEOF:"function"  }  ,null          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_FUNCTION_WITH_ARRAY          [ERROR]",   function () { return lcast( { LTYPEOF:"function"  }  ,[]            ) } );
+
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_OBJECT_WITH_UNDEFINED        [ERROR]",   function () { return lcast( { LTYPEOF:"object"    }  ,undefined     ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_OBJECT_WITH_BOOLEAN_TRUE     [ERROR]",   function () { return lcast( { LTYPEOF:"object"    }  ,true          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_OBJECT_WITH_BOOLEAN_FALSE    [ERROR]",   function () { return lcast( { LTYPEOF:"object"    }  ,false         ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_OBJECT_WITH_NUMBER_1         [ERROR]",   function () { return lcast( { LTYPEOF:"object"    }  ,1             ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_OBJECT_WITH_NUMBER_E         [ERROR]",   function () { return lcast( { LTYPEOF:"object"    }  ,1.0e10        ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_OBJECT_WITH_NUMBER_NaN       [ERROR]",   function () { return lcast( { LTYPEOF:"object"    }  ,NaN           ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_OBJECT_WITH_STRING           [ERROR]",   function () { return lcast( { LTYPEOF:"object"    }  ,'hello'       ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_OBJECT_WITH_FUNCTION         [ERROR]",   function () { return lcast( { LTYPEOF:"object"    }  ,function() {} ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_OBJECT_WITH_OBJECT           [NORMAL]",  function () { return lcast( { LTYPEOF:"object"    }  ,{}            ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_OBJECT_WITH_NULL             [ERROR]",   function () { return lcast( { LTYPEOF:"object"    }  ,null          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_OBJECT_WITH_ARRAY            [ERROR]",   function () { return lcast( { LTYPEOF:"object"    }  ,[]            ) } );
+
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_BOOLEAN_WITH_UNDEFINED       [ERROR]",   function () { return lcast( { LTYPEOF:"boolean"   }  ,undefined     ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_BOOLEAN_WITH_BOOLEAN_TRUE    [NORMAL]",  function () { return lcast( { LTYPEOF:"boolean"   }  ,true          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_BOOLEAN_WITH_BOOLEAN_FALSE   [NORMAL]",  function () { return lcast( { LTYPEOF:"boolean"   }  ,false         ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_BOOLEAN_WITH_NUMBER_1        [ERROR]",   function () { return lcast( { LTYPEOF:"boolean"   }  ,1             ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_BOOLEAN_WITH_NUMBER_E        [ERROR]",   function () { return lcast( { LTYPEOF:"boolean"   }  ,1.0e10        ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_BOOLEAN_WITH_NUMBER_NaN      [ERROR]",   function () { return lcast( { LTYPEOF:"boolean"   }  ,NaN           ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_BOOLEAN_WITH_STRING          [ERROR]",   function () { return lcast( { LTYPEOF:"boolean"   }  ,'hello'       ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_BOOLEAN_WITH_FUNCTION        [ERROR]",   function () { return lcast( { LTYPEOF:"boolean"   }  ,function() {} ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_BOOLEAN_WITH_OBJECT          [ERROR]",   function () { return lcast( { LTYPEOF:"boolean"   }  ,{}            ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_BOOLEAN_WITH_NULL            [ERROR]",   function () { return lcast( { LTYPEOF:"boolean"   }  ,null          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_BOOLEAN_WITH_ARRAY           [ERROR]",   function () { return lcast( { LTYPEOF:"boolean"   }  ,[]            ) } );
+
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_STRING_WITH_UNDEFINED        [ERROR]",   function () { return lcast( { LTYPEOF:"string"    }  ,undefined     ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_STRING_WITH_BOOLEAN_TRUE     [ERROR]",   function () { return lcast( { LTYPEOF:"string"    }  ,true          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_STRING_WITH_BOOLEAN_FALSE    [ERROR]",   function () { return lcast( { LTYPEOF:"string"    }  ,false         ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_STRING_WITH_NUMBER_1         [ERROR]",   function () { return lcast( { LTYPEOF:"string"    }  ,1             ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_STRING_WITH_NUMBER_E         [ERROR]",   function () { return lcast( { LTYPEOF:"string"    }  ,1.0e10        ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_STRING_WITH_NUMBER_NaN       [ERROR]",   function () { return lcast( { LTYPEOF:"string"    }  ,NaN           ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_STRING_WITH_STRING           [NORMAL]",  function () { return lcast( { LTYPEOF:"string"    }  ,'hello'       ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_STRING_WITH_FUNCTION         [ERROR]",   function () { return lcast( { LTYPEOF:"string"    }  ,function() {} ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_STRING_WITH_OBJECT           [ERROR]",   function () { return lcast( { LTYPEOF:"string"    }  ,{}            ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_STRING_WITH_NULL             [ERROR]",   function () { return lcast( { LTYPEOF:"string"    }  ,null          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_STRING_WITH_ARRAY            [ERROR]",   function () { return lcast( { LTYPEOF:"string"    }  ,[]            ) } );
+
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NUMBER_WITH_UNDEFINED        [ERROR]",   function () { return lcast( { LTYPEOF:"number"    }  ,undefined     ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NUMBER_WITH_BOOLEAN_TRUE     [ERROR]",   function () { return lcast( { LTYPEOF:"number"    }  ,true          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NUMBER_WITH_BOOLEAN_FALSE    [ERROR]",   function () { return lcast( { LTYPEOF:"number"    }  ,false         ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NUMBER_WITH_NUMBER_1         [NORMAL]",  function () { return lcast( { LTYPEOF:"number"    }  ,1             ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NUMBER_WITH_NUMBER_E         [NORMAL]",  function () { return lcast( { LTYPEOF:"number"    }  ,1.0e10        ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NUMBER_WITH_NUMBER_NaN       [NORMAL]",  function () { return lcast( { LTYPEOF:"number"    }  ,NaN           ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NUMBER_WITH_STRING           [ERROR]",   function () { return lcast( { LTYPEOF:"number"    }  ,'hello'       ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NUMBER_WITH_FUNCTION         [ERROR]",   function () { return lcast( { LTYPEOF:"number"    }  ,function() {} ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NUMBER_WITH_OBJECT           [ERROR]",   function () { return lcast( { LTYPEOF:"number"    }  ,{}            ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NUMBER_WITH_NULL             [ERROR]",   function () { return lcast( { LTYPEOF:"number"    }  ,null          ) } );
+            ltypeTestAuto( "TYPEDEF_OBJECT_OF_NUMBER_WITH_ARRAY            [ERROR]",   function () { return lcast( { LTYPEOF:"number"    }  ,[]            ) } );
 
         }
+
+        t02();
+        function t02() {
+            ltestSetUnitExecute( ltestUnitExecute2 );
+            ltypeTestAuto( "LIS_DEFAULT_TO_LNAME_01 [NORMAL] (LIS defaults to LNAME. Test the case when LIS is *an empty array*. Check if embeding procedure is working correctly,too.)",  function () { 
+                var lcast = lcompile([ { LNAME:"LHello",   LTYPEOF:'object',  LIS :[] } ] );
+                return lcast( "*LHello", lcast("LHello", {} ) );
+            });
+
+            ltypeTestAuto( "LIS_DEFAULT_TO_LNAME_02 [NORMAL] (LIS defaults to LNAME. Test the case when its *LIS property already contains LNAME*. Check if the embeding procedure is working correctly,too.)",  function () { 
+                var lcast = lcompile([ { LNAME:"LHello",   LTYPEOF:'object',  LIS :[ "LHello" ] } ] );
+                return lcast( "*LHello", lcast("LHello", {} ) );
+            });
+
+
+
+
+            // var lcast = lcompile(); 
+            // ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_UNDEFINED    [ERROR]",   function () { return lcast( { LTYPEOF:"any" }, undefined     ) } );
+            // ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_BOOLEAN_TRUE [NORMAL]",  function () { return lcast( { LTYPEOF:"any" }, true          ) } );
+            // ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_BOOLEAN_FALSE[NORMAL]",  function () { return lcast( { LTYPEOF:"any" }, false         ) } );
+            // ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_NUMBER_1     [NORMAL]",  function () { return lcast( { LTYPEOF:"any" },  1            ) } );
+            // ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_NUMBER_E     [NORMAL]",  function () { return lcast( { LTYPEOF:"any" }, 1.0e10        ) } );
+            // ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_NUMBER_NaN   [NORMAL]",  function () { return lcast( { LTYPEOF:"any" }, NaN           ) } );
+            // ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_STRING       [NORMAL]",  function () { return lcast( { LTYPEOF:"any" }, 'hello'       ) } );
+            // ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_FUNCTION     [NORMAL]",  function () { return lcast( { LTYPEOF:"any" }, function() {} ) } );
+            // ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_OBJECT       [NORMAL]",  function () { return lcast( { LTYPEOF:"any" }, {}            ) } );
+            // ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_NULL         [NORMAL]",  function () { return lcast( { LTYPEOF:"any" }, null          ) } );
+            // ltypeTestAuto( "TYPEDEF_OBJECT_OF_ANY_WITH_ARRAY        [NORMAL]",  function () { return lcast( { LTYPEOF:"any" }, []            ) } );
+
+            // ltypeTestExpectError( "UNDEFINED FIELD2",  function () { 
+            //     var lcast = lcompile([ 
+            //         {
+            //             LNAME:"LNumber",   
+            //             LTYPEOF:'object',  
+            //             LIS :['LNumber', ],  
+            //             LFIELDS: { 
+            //                 num:"number||undefined", 
+            //             }, 
+            //         }, 
+            //     ]);
+            //     return lcast("*LNumber",{});
+            // });
+
+            // var lcast;
+            // ltypeTestExpectValue( "UNDEFINED FIELD3",  function () { 
+            //     var lcast = lcompile([ 
+            //         {
+            //             LNAME:"LNumber",   
+            //             LTYPEOF:'object',  
+            //             LIS :['LNumber', ],  
+            //             LFIELDS: { 
+            //                 num:"number||undefined", 
+            //             }, 
+            //         }, 
+            //     ]);
+            //     return lcast("*LNumber",{});
+            // });
+        }
+
 
         tbasic();
         function tbasic() {
