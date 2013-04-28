@@ -17,47 +17,53 @@ checking runtime objects's consistency.
 
 /* MOTIVATION */
 
-JavaScript has a prototype-based type system. The prototype-based type system
-only checks inheritance relationship of objects and is not very good at
-implements polymorphism because of lacking abillity to define abstract
-functions.
+JavaScript has a prototype-based type system.  The prototype-based type system
+is not good at implementing Java-like interface and is not very good at
+implementing polymorphism. 
 
-If you want to implement Java-like interface-based objects, you usually get
-poor results because prototype-based type management only allows single
-inheritance.
+This is IMO because prototype-based type system only checks inheritance
+relationship between objects. It is also because lacking abillity to define
+abstract functions and interfaces with muiti-inheritance.  Hence when it is
+necessary to implement Java-like interface-based objects by JavaScript, it
+might end up with poor result. 
 
-I designed LTYPE to implement an interface-based runtime type checking system. 
+Final goal of designing LTYPE is to implement an interface-based runtime type
+checking system.  And I accedentally noticed that this is also functioning as
+a JSON schema.
+
 
 
 /* HOW THIS MODULE CAN BE USED */
 
-    // It easilly messes your code up when you need to check consistency of the arguments.
+    // It easilly messes your code up when you need to check consistency of your function's arguments.
     function someVeryComplexFunctionWhichIsVeryDifficultToDebug( p1,p2,p3,p4,p5,...,p50 ) {
-        if ( p1.foo == 1 && p1.bum == '1' && p2.bar == 12 & .... ) {
-            dothis();
-        } else {
-            dothat();
-        }
+        if ( typeof p1.a !='string' ) { throw 'e' }
+        if ( typeof p1.b !='object' || p1.b == null ) { throw 'e' }
+        if ( typeof p2.a !='number' ) { throw 'e' }
+        if ( typeof p2.b !='object' || p2.b == null || p2.b.slice == undefined ) { throw 'e' }
+        // ... (checking all properties of these parameter objects) ...
+        dothis();
     }
     
-    // ltype let you do in this way :
+    // ltype let you do it in this way :
     function someVeryComplexFunctionWhichIsVeryDifficultToDebug( p1,p2,p3,p4,p5,...,p50 ) {
         // lcast throws an exception when the passed object is not consistent with the predefined class.
-        lcast( 'SomePredifinedClass1', p1 ); 
-        lcast( 'SomePredifinedClass2', p2 ); 
-        lcast( 'number', p3 ); 
-        lcast( 'string', p4 ); 
+        lcast( 'number', p1 ); 
+        lcast( 'string', p2 ); 
+        lcast( 'SomePredifinedClass1', p3 ); 
+        lcast( 'SomePredifinedClass2', p4 ); 
         // and so on ...
     }
 
-/* HOW TO USE */
 
-    // BASIC USAGE 
+/*** HOW TO USE ***/
+
+/* 1. BASIC USAGE WITH 'typedef-string' */
 
     // initialize.
     var lcast = lcompile();
 
-    // lcast is a closure...  function lcast( typedef, value ) {...}
+    // lcast is a closure which takes two parameters : function lcast( typedef, value );
 
     // check if (typeof {} == 'object') otherwise this throws an exception.
     lcast( 'object', {}       ); // [OK] this won't throw any exception.
@@ -84,8 +90,13 @@ I designed LTYPE to implement an interface-based runtime type checking system.
     // there are three pseudo typeof-string values : 
     //     'any', 'null', 'array'
 
-    // 'any' matches with any type but 'undefined' so this throws no exception.
-    lcast( 'any', value ); // [OK] this won't throw any exception.
+    // 'any' matches with any type except 'undefined'.
+    lcast( 'any', undefined ); // [FAIL]
+
+    // 'any' is useful for checking if the specific property exists on the specific object.
+    var object = { field1:'hello world' };
+    lcast( 'any', object.field1 );      // [OK] this won't throw any exception.
+    lcast( 'any', object.noSuchField ); // [FAIL]
 
     // 'array' matches with array values.
     lcast( 'array', [1,2,3] ); // [OK] this won't throw any exception.
@@ -106,65 +117,188 @@ I designed LTYPE to implement an interface-based runtime type checking system.
     lcast( 'null', 'hello'    ); // [FAIL]
     lcast( 'null', []         ); // [FAIL]
     lcast( 'null', undefined  ); // [FAIL]
+    lcast( 'null', null       ); // [OK]
 
-    // Let's call this typeof string with a little extension as "typeofex" here.
+    // Let's call this typeof emitted string with a little extension as "typeof-string" here.
+    // typeof-string:=[ "undefined","function","object","boolean","string","number", 'any', 'null', 'array' ]
 
+    // The 'typeof-string' is a part of 'typedef-string'. 'typedef-string' is actually a powerful script.
+    // Not only checking its typeof-string value, it is also able to use logical comparison operator.
 
-/* HOW TO USE 2 */
+    // ex)
+    // lcast( 'string||null', 'hello' ); // [OK]
+    // lcast( 'string||null',  null ); // [OK]
 
-    // So far, the parameter 'typedef' was typeofex strings. This can also be objects.
-    // Set typeofex string to the LTYPEOF property on the parameter object as below :
+    // [NOTE] We are going to talk about this function in later chapter.
+    
+
+/* 2. BASIC USAGE WITH 'typedef-object' */
+
+    // So far, the lcast's parameter 'typedef' was typedef-string strings. This can also be objects.
+    // Set typedef-string string to the LTYPEOF property on the parameter object as below :
     lcast( { LTYPEOF: 'object' }, {} ); // [OK] 
     lcast(            'object'  , {} ); // [OK] the result above is exactly same with this.
     
-    // some more examples.
+    // Some more examples.
     lcast( { LTYPEOF: 'object' },  1        ); // [FAIL] same as lcast( 'object', 1 ); 
     lcast( { LTYPEOF: 'number' }, "hello"   ); // [FAIL] same as lcast( 'number', "hello" ); 
     lcast( { LTYPEOF: 'string' }, null      ); // [FAIL] same as lcast( 'string', null ); 
     lcast( { LTYPEOF: 'null'   }, undefined ); // [FAIL] same as lcast( 'null'  , undefined ); 
 
-    // passing an object to typedef is more powerful than passing a string.
+    // [NOTE] LTYPEOF must be 'typeof-string' value but not 'typedef-string'.
 
-    // you can performe field type checking by using LFIELDS property.
+    // Let's call this type defining objects as 'typedef-object' here. 
+    // 'typedef-object' has some advantages compared with 'typedef-string'.
+
+    // For example, you can performe field type checking by using LFIELDS property.
     var typedef = { 
         LTYPEOF: 'object', 
         LFIELDS: {
-            name : 'string', // you can set a typeofex string.
-            age  : 'number', // you can set a typeofex string.
+            name : 'string', // you can set a typedef-string string.
+            age  : 'number', // you can set a typedef-string string.
         }, 
     };
     lcast( typedef, { name : 'hello', age: 20   }); // [OK]
     lcast( typedef, { name : 'hello', age: '20' }); // [FAIL] the value of 'age' property must be a number.
 
+    // [NOTE] This 'typedef-object' has more useful functions. We are talking about it later.
 
 
+/* 3. BASIC USAGE WITH DEFINING TYPES */
 
-
-
-
+    // You can predefine typedef-objects and can be referred by its ID.
+    // Specify type id by setting string value as 'LNAME' property :
     
-
-
-
-    /* USAGE for checking interface */
-        // initialize
-        var lcast = lcompile([
-            {
-            },
-        ]);
-
-        // preparing a test value. 
-        var value = {};
-
-        // check if (typeof value =='object'). this throws an exception if failed.
-        try {
-            lcast( 'object', value );
-        } catch ( e ) {
-            console.error( e ); // this will not happen.
+    var lcast = lcompile([
+        {
+            LNAME : 'LNewString', // Specify its ID string as a property 'LNAME'
+            LTYPEOF: 'string', 
         }
+    ]);
 
-    /* USAGE for checking interface */
+    lcast( 'LNewString', 'Hello World!" ); // [OK] is a string value.
+    lcast( 'LNewString', 3.141592 ); // [FAIL] not a string value.
 
+    // Here is another example.
+    var lcast = lcompile([
+        {
+            LNAME : 'LPerson', // Specify its ID string as a property 'LNAME'
+            LTYPEOF: 'object',  // A LNewString value's typeof-string must be 'string'
+            LFIELDS: {
+                name : 'string', // you can set a typedef-string string.
+                age  : 'number', // you can set a typedef-string string.
+            }, 
+        }
+    ]);
+
+    lcast( 'LPerson', { name : 'hello', age: 20   }); // [OK]
+    lcast( 'LPerson', { name : 'hello', age: '20' }); // [FAIL] the value of 'age' property must be a number.
+
+    // [NOTE] Usually users should call lcast as this form.
+
+
+
+/* 4. ADVANCED USAGE with 'typedef-object' */
+
+    /* LEQU : checking equality */
+    // Setting an array to LEQU property on the typedef-object enables you to define enumeration types.
+    var lcast = lcompile([
+        {
+            LNAME : 'LCard', // Specify its ID string as a property 'LNAME'
+            LTYPEOF: 'string', // the value must be 
+            LEQU : [ 'HEART', 'DIAMOND', 'SPADE', 'CLUB' ]
+        }
+    ]);
+
+    // the value must be equal with one of the elements in the array LEQU.
+    lcast( 'LCard', 'HEART' ); // [OK]
+    lcast( 'LCard', 'JOKER' ); // [FAIL] 
+
+    // Other examples : these value do not necessarily have to be string. Can be anything. 
+
+    var lcast = lcompile([
+        {
+            LNAME : 'LSpecialNumber', // Specify its ID string as a property 'LNAME'
+            LTYPEOF: 'number',
+            LEQU : [ 10e+4, NaN, 100, Number.POSITIVE_INFINITY ],
+        }
+    ]);
+
+    // the value must be equal with one of element in the array LEQU.
+    lcast( 'LSpecialNumber', 100000 ); // [OK]
+    lcast( 'LSpecialNumber', NaN ); // [OK]
+    lcast( 'LSpecialNumber', 1/0 ); // [OK]
+    lcast( 'LSpecialNumber', -1/0 ); // [FAIL]
+
+    var lcast = lcompile([
+        {
+            LNAME : 'LMarioBros', // Specify its ID string as a property 'LNAME'
+            LTYPEOF: 'object',
+            LEQU : [ 
+                {
+                    color : 'Red',
+                    name : 'Mario',
+                },
+                {
+                    color : 'Green',
+                    name : 'Luigi',
+                },
+            ]
+        }
+    ]);
+
+    // the value must be equal with one of element in the array LEQU.
+    lcast( 'LCard', { color:'Red', name :'Mario' } ); // [OK]
+    lcast( 'LCard', 'Mario' ); // [FAIL] 
+    lcast( 'LCard', { color:'Black', name :'Mickey' } ); // [FAIL] 
+
+    /* LPAT : pattern matching */
+    // LPAT must be an array which contains strings. 
+    // The strings are treated as RegExp with 'g' option.
+    // If none of these RegExp string matches to the value, it fails.
+    var lcast = lcompile([
+        {
+            LNAME : 'LPatternTest', // Specify its ID string as a property 'LNAME'
+            LTYPEOF: 'any',
+            LPAT : [ '^[a-z]*$', '^[0-9]\\.[0-9][0-9]$' ],
+        }
+    ]);
+    lcast( 'LPatternTest', 'abc' ); // [OK]
+    lcast( 'LPatternTest', 'ABC' ); // [FAIL]
+    lcast( 'LPatternTest', '3.14' ); // [OK]
+    lcast( 'LPatternTest', '1.41' ); // [OK]
+    lcast( 'LPatternTest', '2.718281828' ); // [FAIL]
+
+
+/* 5. ADVANCED USAGE with 'typedef-string' */
+
+    // Logical Operator
+    var lcast = lcompile([
+        {
+            LNAME : 'LName', // Specify its ID string as a property 'LNAME'
+            LTYPEOF: 'object',
+            LFIELDS : {
+                name : 'string',
+            },
+        },
+        {
+            LNAME : 'LAge', // Specify its ID string as a property 'LNAME'
+            LTYPEOF: 'object',
+            LFIELDS : {
+                age : 'number',
+            },
+        }
+    ]);
+
+    lcast( 'LName&&LAge', { name : 'Nicky', age : 20 }); // [OK]
+    lcast( 'LName&&LAge', { name : 'Nicky',          }); // [FAIL]
+    lcast( 'LName&&LAge', {                 age : 20 }); // [FAIL]
+    lcast( 'LName&&LAge', {                          }); // [FAIL]
+
+    lcast( 'LName||LAge', { name : 'Nicky', age : 20 }); // [OK]
+    lcast( 'LName||LAge', { name : 'Nicky',          }); // [OK]
+    lcast( 'LName||LAge', {                 age : 20 }); // [OK]
+    lcast( 'LName||LAge', {                          }); // [FAIL]
 
 
 
