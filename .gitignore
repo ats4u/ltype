@@ -1,2 +1,19 @@
+<<<<<<< HEAD
 make-mixitrans.sh
 make_ltype_test.sh
+=======
+lib-cov
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+pids
+logs
+results
+
+npm-debug.log
+>>>>>>> 4aa806ff6322aef4d3cb660702eb0f17e9143952

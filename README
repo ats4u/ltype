@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
     LTYPE
     A Very Simple Non Prototype Based Type Management System For JavaScript
@@ -628,3 +629,9 @@ Computer Science :
         - SQL 1996~2004 eight years.
 
 
+=======
+ltype
+=====
+
+An extremely lightweight type checking system for JavaScript
+>>>>>>> 4aa806ff6322aef4d3cb660702eb0f17e9143952
