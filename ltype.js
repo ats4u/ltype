@@ -34,14 +34,17 @@
     //     return result;
     // }
 
+    // "isNaN is broken"
+    // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/isNaN#Description
+    // (o1!=o1)==true if and only if o1 is NaN
     function eq( o1, o2 ) {
         if ( o1===o2 ) {
             return true;
-        } else if ( ( typeof o1=='number' && isNaN(o1) ) && ( typeof o2=='number' && isNaN(o2) ) ) {
+        } else if ( ( typeof o1==='number' && (o1!=o1) ) && ( typeof o2==='number' && (o2!=o2) ) ) {
             return true;
         } else if ( o1==null || o2 == null ) {
             return false;
-        } else if ( (typeof o1) ==  'object' && (typeof o2) == 'object' ) {
+        } else if ( (typeof o1) ===  'object' && (typeof o2) === 'object' ) {
             var p1=[];
             var p2=[];
             // var p1=Object.keys(o1);
@@ -75,18 +78,18 @@
 
     function _lisArray(object){
         return (
-            ( typeof object=='object' ) && 
+            ( typeof object==='object' ) && 
             ( object!=null ) && 
             ( object.constructor == Array || ( object.length != undefined && object.slice != undefined ) )
         );
     }
 
     function _lisObject(object){
-        return object==null ? false : (typeof object)=='object';
+        return object==null ? false : (typeof object)==='object';
     }
 
     function _lclone(object){ 
-        if ( typeof object == 'object' ) {
+        if ( typeof object === 'object' ) {
             return JSON.parse( JSON.stringify( object ) );
         } else {
             return object;
@@ -104,7 +107,7 @@
         return this;
     }
     function _liskeyword( p ) {
-        return p=='LNAME' || p=='LTYPEOF' || p=='LEQU' || p=='LIS'|| p=='LPAT' || p=='LFIELDS' ||p == 'LWHEN' || p =='LTYPE' || p == 'toString';
+        return p=='LTYPEOF' ||p == 'LWHEN' || p =='LTYPE' || p=='LIS' || p=='NAME' || p=='EXTENDS' || p=='ONEOF' || p=='NONEOF' || p=='EXPRESSION' || p=='REGEXP' || p=='FIELDS' || p == 'toString';
     }
 
     var _LError = {
@@ -119,16 +122,15 @@
 
     function ltypeBasic() {
         return [
-            {LNAME:'any',       LTYPEOF:'any',       },
-            // {LNAME:'null',      LTYPEOF:'object',    LEQU:[null] },
-            {LNAME:'null',      LTYPEOF:'null',      },
-            {LNAME:'array',     LTYPEOF:'array',     },
-            {LNAME:'undefined', LTYPEOF:'undefined'  },
-            {LNAME:'function',  LTYPEOF:'function'   },
-            {LNAME:'object',    LTYPEOF:'object',    },
-            {LNAME:'boolean',   LTYPEOF:'boolean',   },
-            {LNAME:'string',    LTYPEOF:'string',    },
-            {LNAME:'number',    LTYPEOF:'number',    },
+            {NAME:'any',       LTYPEOF:'any',       },
+            {NAME:'null',      LTYPEOF:'null',      },
+            {NAME:'array',     LTYPEOF:'array',     },
+            {NAME:'undefined', LTYPEOF:'undefined'  },
+            {NAME:'function',  LTYPEOF:'function'   },
+            {NAME:'object',    LTYPEOF:'object',    },
+            {NAME:'boolean',   LTYPEOF:'boolean',   },
+            {NAME:'string',    LTYPEOF:'string',    },
+            {NAME:'number',    LTYPEOF:'number',    },
         ];
     }
 
@@ -141,25 +143,26 @@
         if ( ! _lisArray( _ltypes_arr ) ) {
             throw new Error( "Illegal Argument (malformed parameter object) : " + JSON.stringify( _ltypes_arr ) );
         }
-        if ( _ltypes_arr == null || ( typeof _ltypes_arr != 'object' ) || _ltypes_arr.length == undefined ) {
+        if ( _ltypes_arr === null || ( typeof _ltypes_arr !== 'object' ) || _ltypes_arr.length === undefined ) {
             throw new Error( "Illegal Argument (malformed parameter object) : " + JSON.stringify( _ltypes_arr ) );
         }
         var ltypes_arr = ltypeBasic().concat( _ltypes_arr );
         var map_ltypes = {};
         for ( var i=0; i<ltypes_arr.length; i++ ) {
-            if ( ltypes_arr[i].LNAME == undefined ) {
-                throw new Error( "Illegal Argument (found an object which has no LNAME) : " + JSON.stringify( _ltypes_arr ) );
+            if ( ltypes_arr[i].NAME == undefined ) {
+                throw new Error( "Illegal Argument (found an object which has no NAME) : " + JSON.stringify( _ltypes_arr ) );
             }
-            if ( ltypes_arr[i].LTYPEOF == undefined ) {
-                throw new Error( "Illegal Argument (found an object which has no LTYPEOF) : " + JSON.stringify( _ltypes_arr ) );
-            }
-            map_ltypes[ ltypes_arr[i].LNAME ] = ltypes_arr[i];
+            // 2013/4/28 MODIFIED
+            // if ( ltypes_arr[i].LTYPEOF == undefined ) {
+            //     throw new Error( "Illegal Argument (found an object which has no LTYPEOF) : " + JSON.stringify( _ltypes_arr ) );
+            // }
+            map_ltypes[ ltypes_arr[i].NAME ] = ltypes_arr[i];
         }
 
         var lcast = function lcast( type, object, name ) {
             // __lconsole().trace();
             if ( name == undefined ) {
-                name = 'param';
+                name = 'arg0';
             }
             var llog = [];
             var lresult = _lcast( map_ltypes, llog, /*boolean*/ true, /*string||object*/ type , name, /*object*/ object );
@@ -224,22 +227,22 @@
         return s;
     }
 
-    function _llogNotifyStatus( sectionName, msgid, result, scriptType, scriptString, targetName, sublog ) {
+    function _llogNotifyStatus( sectionName, result, typedefVariation, typedefScript, targetName, sublog ) {
         if ( result ) {
-            return ( { type:"OK",                   reason : "[" + sectionName + "] " + scriptType + " '" + scriptString + "' with the value of '"+targetName+"' was evaluated as true / see $sublog", /* msgid:msgid,*/ sublog:sublog } );
+            return ( { type:"OK",                   reason : "[" + sectionName + "] the " + typedefVariation + " '" + typedefScript + "' with the value specified by '"+targetName+"' was evaluated as true. / see $sublog", sublog:sublog } );
         } else { 
-            return ( { type:"Object Type Mismatch", reason : "[" + sectionName + "] " + scriptType + " '" + scriptString + "' with the value of '"+targetName+"' was evaluated as false / see $sublog",/* msgid:msgid,*/ sublog:sublog } );
+            return ( { type:"Object Type Mismatch", reason : "[" + sectionName + "] the " + typedefVariation + " '" + typedefScript + "' with the value specified by '"+targetName+"' was evaluated as false. / see $sublog",sublog:sublog } );
         }
     }
 
-    function _llogNotifyPrimitive( result, objectName2, objectValue, typedefObject ) {
-        var objectPrimitiveType = typeof objectValue;
+    function _llogNotifyPrimitive( result, objectValue, typedefObject ) {
+        var objectPrimitiveType = _ltypeof( objectValue );
         if ( result ) {
             return ( { type:"OK",                      reason : 
-                "[LTYPEOF] the type '"+typedefObject.LNAME+"' requires a primitive type '" + typedefObject.LTYPEOF + "' and the value of '" + objectName2 + "' is a primitive type '" + objectPrimitiveType +"' value" } );
+                "[LTYPEOF] '"+typedefObject.NAME+"' requires ltypeof value '" + typedefObject.LTYPEOF + "' and the ltypeof value of $objectValue is '" + objectPrimitiveType +"'.", objectValue : objectValue } );
         } else {
             return ( { type:"Primitive Type Mismatch", reason : 
-                "[LTYPEOF] the type '"+typedefObject.LNAME+"' requires a primitive type '" + typedefObject.LTYPEOF + "' and the value of '" + objectName2 + "' is a primitive type '" + objectPrimitiveType +"' value" } );
+                "[LTYPEOF] '"+typedefObject.NAME+"' requires ltypeof value '" + typedefObject.LTYPEOF + "' and the ltypeof value of $objectValue is '" + objectPrimitiveType +"'.", objectValue : objectValue } );
         }
     }
 
@@ -247,22 +250,46 @@
     * a wildcard class name 'any' matches every type but undefined. 
     * a wildcard class name 'array' matches array object. 
     */
-    function _lasCheckPrimitive( ltypeof, objectValue ) {
-        var objectPrimitiveType = typeof objectValue;
-        return ( 
-               ( ltypeof==='any'    && objectPrimitiveType!=='undefined' ) || 
-               ( ltypeof==='null'   && objectPrimitiveType==='object' && ( objectValue === null ) ) ||
-               ( ltypeof==='object' && objectPrimitiveType==='object' && ( objectValue !== null ) && ! _lisArray( objectValue ) ) ||
-               ( ltypeof==='array'  && objectPrimitiveType==='object' && ( objectValue !== null ) &&   _lisArray( objectValue ) ) ||
-               ( ltypeof!=='object' && ltypeof=== objectPrimitiveType )
-        );
+    function _ltypeofCheck( ltypeof, objectValue ) {
+        if ( ltypeof === 'any' ) {
+            return objectValue !== undefined;
+        } else if ( ltypeof==='null' ) {
+            return objectValue === null;
+        } else if ( ltypeof==='object' ) {
+            return ( typeof objectValue==='object' ) && ( objectValue !== null ) && ! _lisArray( objectValue );
+        } else if ( ltypeof==='array' ) {
+            return ( typeof objectValue==='object' ) && ( objectValue !== null ) &&   _lisArray( objectValue );
+        } else {
+           return typeof objectValue === ltypeof;
+        }
+        // return ( 
+        //        ( ltypeof==='any'    && objectValue !== undefined ) || 
+        //        ( ltypeof==='null'   && objectValue === null ) ||
+        //        ( ltypeof==='object' && ( objectPrimitiveType==='object' ) && ( objectValue !== null ) && ! _lisArray( objectValue ) ) ||
+        //        ( ltypeof==='array'  && ( objectPrimitiveType==='object' ) && ( objectValue !== null ) &&   _lisArray( objectValue ) ) ||
+        //        ( ltypeof!=='object' && ( ltypeof=== objectPrimitiveType ) )
+        // );
+    }
+    function _ltypeof( objectValue ) {
+        var typeofValue = typeof objectValue;
+        if ( typeofValue==='object' ) { 
+            if ( objectValue === null ) { 
+                return 'null';
+            } else if ( _lisArray( objectValue ) ) {
+                return 'array';
+            } else {
+                return 'object';
+            }
+        } else {
+            return typeofValue;
+        }
     }
 
     /*
-    * _ltypeof
+    * _lget_RTTI
     *     check RTTI object
     */
-    function _ltypeof( objectValue ) {
+    function _lget_RTTI( objectValue ) {
         return objectValue == null ? null : ( objectValue.LTYPE == undefined ? null : objectValue.LTYPE );
     }
 
@@ -283,46 +310,46 @@
     }
 
     function _lname( typedefObject ) { 
-        return typedefObject.LNAME != undefined ? typedefObject.LNAME : 'ANONYMOUS';
+        return typedefObject.NAME != undefined ? typedefObject.NAME : 'ANONYMOUS';
     }
 
 
     function _lcast( ltypes, llog, /*boolean*/ doembedRTTI, /*string||object*/ typedef, objectName, /*object*/ objectValue ) {
         if ( typedef == undefined ) {
-            llog.push( { type:'Illegal Argument Error', reason: "typedef was '" + typedef + "'" } );
+            llog.push( { type:'Illegal Argument Error', reason: "typedef was '" + typedef + "'." } );
             return false;
-        } else if ( typeof typedef  == 'string' ) {
-            return _lcast_typedefString( ltypes, llog, doembedRTTI, typedef, objectName, objectValue, [] );
-        } else if ( typeof typedef == 'object' ) {
+        } else if ( typeof typedef === 'string' ) {
+            return _lcast_typedefScript( ltypes, llog, doembedRTTI, typedef, objectName, objectValue, [] );
+        } else if ( typeof typedef === 'object' ) {
             return _lcast_typedefObject2( ltypes, llog, false, doembedRTTI, _lname(typedef), typedef, objectName, objectValue, 0, [] );
         } else {
-            llog.push( { type:'Illegal Argument Error', reason: "typedef was '" + typedef + "'" } );
+            llog.push( { type:'Illegal Argument Error', reason: "typedef was '" + typedef + "'." } );
             return false;
         }
     }
 
 
     /*
-    * _lcast_typedefString
+    * _lcast_typedefScript
     */
-    function _lcast_typedefString( ltypes, llog, /*boolean*/doembedRTTI, /*string*/ typedefString, objectName, /*object||undefined*/ objectValue, arrayIndexStack1 ) {
+    function _lcast_typedefScript( ltypes, llog, /*boolean*/doembedRTTI, /*string*/ typedefScript, objectName, /*object||undefined*/ objectValue, arrayIndexStack1 ) {
         var objectName1 = objectName+_lstackToString(arrayIndexStack1);
-        if ( typedefString.startsWith( "array of " ) ) {
+        if ( typedefScript.startsWith( "array of " ) ) {
             var sublog = [];
-            var result = _lcast_arrayof_typedefString(ltypes, sublog, doembedRTTI, typedefString, objectName, objectName1, objectValue, arrayIndexStack1 );
-            llog.push( _llogNotifyStatus( 'ARRAYOF', 'L100',result, 'the script', typedefString, objectName1, sublog ) );
+            var result = _lcast_arrayof_typedefString(ltypes, sublog, doembedRTTI, typedefScript, objectName, objectName1, objectValue, arrayIndexStack1 );
+            llog.push( _llogNotifyStatus( 'ARRAYOF', result, 'SCRIPT', typedefScript, objectName1, sublog ) );
             return result;
         } else {
             var sublog = [];
-            var result = _lcast_eval_typedefString(ltypes, sublog, doembedRTTI, objectName1, objectValue, typedefString );
-            llog.push( _llogNotifyStatus( 'EVALSTR', 'L101', result, 'the script', typedefString, objectName1, sublog ) );
+            var result = _lcast_eval_typedefString(ltypes, sublog, doembedRTTI, objectName1, objectValue, typedefScript );
+            llog.push( _llogNotifyStatus( 'EVALSTR', result, 'SCRIPT', typedefScript, objectName1, sublog ) );
             return result;
         }
     }
 
-    function _lcast_arrayof_typedefString( ltypes, llog, /*boolean*/doembedRTTI, /*string*/ typedefString, objectName, objectName1,/*object||undefined*/ objectValue, arrayIndexStack1 ) {
+    function _lcast_arrayof_typedefString( ltypes, llog, /*boolean*/doembedRTTI, /*string*/ typedefScript, objectName, objectName1,/*object||undefined*/ objectValue, arrayIndexStack1 ) {
         if ( objectValue ==null || (! _lisArray( objectValue ) ) ) {
-            llog.push( { type:"Not Array", reason : "'"+objectName1+"' is not an array" } );
+            llog.push( { type:"Not Array", reason : "'"+objectName1+"' is not an array." } );
             return false;
         }
         arrayIndexStack1.push(null);
@@ -330,7 +357,7 @@
         var result = true;
         for ( var i=0; i<objectValue.length; i++ ) {
             arrayIndexStack1[arrIdxPos] = i;
-            if ( ! _lcast_typedefString( ltypes, llog, doembedRTTI, typedefString.substring(9), objectName, objectValue[i], arrayIndexStack1 ) ) {
+            if ( ! _lcast_typedefScript( ltypes, llog, doembedRTTI, typedefScript.substring(9), objectName, objectValue[i], arrayIndexStack1 ) ) {
                 result = false;
                 // break;
             }
@@ -340,8 +367,8 @@
     }
 
     var _lregexp1 = /([\*]*)([_$a-zA-Z0-9\xA0-\uFFFF]+)((\[\])*)/g;
-    function _lcast_eval_typedefString( ltypes, llog, doembedRTTI, objectName1, objectValue, typedefString ) {
-        var typeValueScript = typedefString.replace( _lregexp1, function(s0,prefix, identifier, array) {
+    function _lcast_eval_typedefString( ltypes, llog, doembedRTTI, objectName1, objectValue, typedefScript ) {
+        var typeValueScript = typedefScript.replace( _lregexp1, function(s0,prefix, identifier, array) {
             return "fn('"+prefix+"','" + identifier +"',"+(array.length /2)+")";
         });
         function fn( prefix, typedefID, arrayDim ) {
@@ -357,7 +384,7 @@
         var objectName2 = objectName1 +_lstackToString(arrayIndexStack2);
         if ( 0<arrayIndexStack2Max ) {
             if ( objectValue.length === undefined ) {
-                llog.push( { type:"Not Array", reason : "'"+objectName2+"' is not array"  } );
+                llog.push( { type:"Not Array", reason : "'"+objectName2+"' is not array."  } );
                 return false;
             } else {
                 var result=true; 
@@ -369,13 +396,13 @@
                     }
                     arrayIndexStack2.pop();
                 }
-                llog.push( _llogNotifyStatus( 'ARRAY', 'L200',result, 'the type', typedefID+_ldimToStr(arrayIndexStack2Max), objectName2, subsublog ) );
+                llog.push( _llogNotifyStatus( 'ARRAY', result, 'OBJECTID', typedefID+_ldimToStr(arrayIndexStack2Max), objectName2, subsublog ) );
                 return result;
             }
         } else {
             var typedefObject = ltypes[ typedefID ];
             if ( typedefObject == undefined ) {
-                llog.push( { type:'Undefined Type', reason:"the specified type '"+typedefID+"' is not defined" } );
+                llog.push( { type:'Undefined Type', reason:"the specified type '"+typedefID+"' is not defined." } );
                 return false;
             } else {
                 return _lcast_typedefObject2( ltypes, llog, doFastTypeCheck, doembedRTTI, typedefID, typedefObject, objectName2, objectValue,arrayIndexStack2Max, arrayIndexStack2 );
@@ -393,16 +420,16 @@
     function _lcast_typedefObject2( ltypes, llog, doFastTypeCheck, doembedRTTI, /*string*/ typedefID, /*object*/typedefObject, objectName2, objectValue, arrayIndexStack2Max, arrayIndexStack2 ) {
         var lsublog = [];
         var result = _lcast_typedefObject3( ltypes, lsublog, doFastTypeCheck, doembedRTTI, typedefID, typedefObject, objectName2, objectValue, arrayIndexStack2Max, arrayIndexStack2 );
-        llog.push( _llogNotifyStatus( 'EVALOBJ', 'L300', result, 'the type', typedefID + _ldimToStr(arrayIndexStack2Max), objectName2, lsublog ) );
+        llog.push( _llogNotifyStatus( 'EVALOBJ', result, 'OBJECTID', typedefID + _ldimToStr(arrayIndexStack2Max), objectName2, lsublog ) );
         return result;
     }
     function _lcast_typedefObject3( ltypes, llog, doFastTypeCheck, doembedRTTI, /*string*/ typedefID, /*object*/typedefObject, objectName2, objectValue, arrayIndexStack2Max, arrayIndexStack2 ) {
         if ( typedefObject === undefined ) {
-            llog.push( { type:"Undefined Type", reason : "the type '"+ typedefID+ "' is not defined" } );
+            llog.push( { type:"Undefined Type", reason : "the type '"+ typedefID+ "' is not defined." } );
             return false;
-        } else if (typedefObject.LTYPEOF==undefined ) {
-            llog.push( { type:"Malformed Type Definition", reason : "the type '"+ typedefID + "' has no LTYPEOF property" } );
-            return false;
+        // } else if (typedefObject.LTYPEOF==undefined ) {
+        //     llog.push( { type:"Malformed Type Definition", reason : "the type '"+ typedefID + "' has no LTYPEOF property." } );
+        //     return false;
         } else {
             if ( doFastTypeCheck ) {
                 var grandResult = (function() {
@@ -411,23 +438,23 @@
                     if ( typedefObject.LIS != undefined  ){
                         typeLIS = typeLIS.concat( typedefObject.LIS );
                     }
-                    if ( typedefObject.LNAME != undefined ) {
+                    if ( typedefObject.NAME != undefined ) {
                         var found = false;
                         for ( var i=0; i<typeLIS.length; i++ ) {
-                            if ( typeLIS[i] == typedefObject.LNAME ) {
+                            if ( typeLIS[i] == typedefObject.NAME ) {
                                 found=true;
                                 break;
                             }
                         }
                         if ( ! found ) {
-                            typeLIS.unshift( typedefObject.LNAME );
+                            typeLIS.unshift( typedefObject.NAME );
                         }
                     }
                     
                     // CONDITION 2
-                    var objectLIS /*string[]*/ = _ltypeof( objectValue );
-                    if ( objectLIS == null ) {
-                        llog.push( { type:"Unqualified Object", reason : "[FASTCHECK] RTTI checking was performed. the type '" + typedefID + "' has type restriction ["+ typeLIS.join(",") + "] but the value has no RTTI information", objectValue:objectValue } );
+                    var objectRTTI /*string[]*/ = _lget_RTTI( objectValue );
+                    if ( objectRTTI == null ) {
+                        llog.push( { type:"Unqualified Object", reason : "[FASTCHECK] RTTI checking was performed. the type '" + typedefID + "' has type restriction ["+ typeLIS.join(",") + "] but the value has no RTTI information.", objectValue:objectValue } );
                         return false;
                     } 
 
@@ -439,8 +466,8 @@
                         var atype = typeLIS[aidx];
                         // (OR operation)
                         var found=false;
-                        for ( var oidx=0; oidx<objectLIS.length; oidx++ ) {
-                            if (objectLIS[oidx]===atype ) {
+                        for ( var oidx=0; oidx<objectRTTI.length; oidx++ ) {
+                            if (objectRTTI[oidx]===atype ) {
                                 found=true;
                                 break;
                             }
@@ -452,31 +479,70 @@
                     }
 
                     if ( outerFound ) {
-                        llog.push( { type:"OK",                        reason : "[FASTCHECK] RTTI checking was performed. the type '" + typedefID + "' has type requirement ["+ typeLIS.join(",")  + "] and the value has type [" + objectLIS.join(",") +"]" } );
+                        llog.push( { type:"OK",                        reason : "[FASTCHECK] RTTI checking was performed. the type '" + typedefID + "' has type requirement ["+ typeLIS.join(",")  + "] and the value has type [" + objectRTTI.join(",") +"]." } );
                     } else {
-                        llog.push( { type:"Type Information Mismatch", reason : "[FASTCHECK] RTTI checking was performed. the type '" + typedefID + "' has type requirement ["+ typeLIS.join(",")  + "] and the value has type [" + objectLIS.join(",") +"]" } );
+                        llog.push( { type:"Type Information Mismatch", reason : "[FASTCHECK] RTTI checking was performed. the type '" + typedefID + "' has type requirement ["+ typeLIS.join(",")  + "] and the value has type [" + objectRTTI.join(",") +"]." } );
                     }
                     return outerFound;
                 })();
                 return grandResult;
             } else {
-                var grandResult = (function() {
-                    var result = _lasCheckPrimitive( typedefObject.LTYPEOF, objectValue );
-                    llog.push( _llogNotifyPrimitive( result, objectName2, objectValue, typedefObject ) );
-                    return result;
-                })() && (function() {
-                    if ( typedefObject.LFIELDS == undefined  ) {
-                        llog.push( { type:"OK", reason:"[LFIELDS] the type '" + typedefID + "' has no field" } );
+                var patcheck = (function(section,patterns,result) {
+                    if ( patterns == undefined ) {
+                        llog.push( { type:"OK", reason : "["+section+"] '"+typedefID+ "' has no value restriction." } );
                         return true;
+                    } else {
+                        // llog.push( { type:"Log", reason :  [] } );
+                        for ( var i=0; i<patterns.length; i++ ) {
+                            if ( eq( patterns[i], objectValue ) ) {
+                                llog.push( { type:(result?"OK":"Value Matched"), reason : "["+section+"] '"+typedefID+ "' the pattern restriction($pattern) matched with the value($objectValue).", pattern: patterns[i], objectValue:objectValue } );
+                                return result;
+                            }
+                        }
+                        llog.push( { type:(result?"Value Unmatched":"OK"), reason : "["+section+"] '"+typedefID+ "' none of the pattern restrictions($patterns) matched with the value($objectValue).", patterns:patterns, objectValue:objectValue } );
+                        return ! result;
+                    }
+                });
+
+                var grandResult = (function() {
+                    if ( typedefObject.EXTENDS === undefined ) { 
+                        llog.push( { type:"OK", reason:"[EXTENDS] '" + typedefID + "' has no EXTENDS restriction." } );
+                        return true;
+                    } else if ( typeof typedefObject.EXTENDS ==='string' ) {
+                        var lsublog = [];
+                        var result =  _lcast_typedefScript( ltypes, lsublog, doembedRTTI, typedefObject.EXTENDS, objectName2, objectValue, [] );
+                        llog.push( _llogNotifyStatus( 'EXTENDS', result, 'SCRIPT', typedefObject.EXTENDS, objectName2, lsublog ) );
+                        return result;
+                    } else {
+                        llog.push( { type:"Malformed Type Definition", reason:"[EXTENDS] the content of EXTENDS must be a string value but '" (+ typeof typedefObject.EXTENDS ) + "'" } );
+                        return false;
+                    }
+                })() && (function() {
+                    if ( typedefObject.LTYPEOF === undefined ) { 
+                        llog.push( { type:"OK", reason:"[LTYPEOF] '" + typedefID + "' has no LTYPEOF restriction." } );
+                        return true;
+                    } else {
+                        var result = _ltypeofCheck( typedefObject.LTYPEOF, objectValue );
+                        llog.push( _llogNotifyPrimitive( result, objectValue, typedefObject ) );
+                        return result;
+                    }
+                })() && (function() {
+                    if ( typedefObject.FIELDS == undefined  ) {
+                        llog.push( { type:"OK", reason:"[FIELDS] '" + typedefID + "' has no field." } );
+                        return true;
+                    }
+                    if ( objectValue === null || objectValue === undefined ) {
+                        llog.push( { type:"Field Mismatch", reason:"[FIELDS] '" + typedefID + "' attempted to check field restriction with the value '"+objectValue+"'." } );
+                        return false;
                     }
 
                     var lsubsublog = [];
                     var result = true;
-                    for ( var fieldName in typedefObject.LFIELDS ) {
+                    for ( var fieldName in typedefObject.FIELDS ) {
                         if ( _liskeyword( fieldName ) ) {
                             continue;
                         }
-                        var argSubType /* object||string */ = typedefObject.LFIELDS[ fieldName ];
+                        var argSubType /* object||string */ = typedefObject.FIELDS[ fieldName ];
                         var objectValue2 /* any||undefined */ = objectValue[ fieldName ];
                         if ( ! _lcast( ltypes, lsubsublog, doembedRTTI, argSubType, objectName2+"."+fieldName, /*object*/ objectValue2 ) ) {
                             result = false;
@@ -485,32 +551,30 @@
 
                     // llog.push( _llogNotifyStatus( 'L300',result, 'the type', typedefID, objectName2, lsubsublog ) );
                     if ( result ) {
-                        llog.push( { type:"OK",             reason: "[LFIELDS] the fields of the object '"+objectName2+"' are fullfilled with the type '"    +typedefID+ "' / see $sublog", sublog:lsubsublog, } );
+                        llog.push( { type:"OK",             reason: "[FIELDS] '"+typedefID+ "' the fields of the object '"+objectName2+"' are fullfilled with the type '"    +typedefID+ "'. / see $sublog", sublog:lsubsublog, } );
                     } else {
-                        llog.push( { type:"Field Mismatch", reason: "[LFIELDS] the fields of the object '"+objectName2+"' are not fullfilled with the type '"+typedefID+ "' / see $sublog", sublog:lsubsublog, } );
+                        llog.push( { type:"Field Mismatch", reason: "[FIELDS] '"+typedefID+ "' the fields of the object '"+objectName2+"' are not fullfilled with the type '"+typedefID+ "'. / see $sublog", sublog:lsubsublog, } );
                     }
 
                     return result;
-                })() && (function() {
-                    // if ( doFastTypeCheck ) {
-                    //     llog.push( { type:"OK", reason:"equality checking was not performed because Fast Run Time Type Checking is enabled." } );
-                    //     return true;
-                    // }
-                    // llog.push( { type:"Log", reason :  [] } );
-                    var leqValues = typedefObject.LEQU;
-                    if ( leqValues == undefined ) {
-                        llog.push( { type:"OK", reason : "[LEQU] the type '"+typedefID+ "' has no value restriction" } );
+                })() && patcheck('ONEOF',typedefObject.ONEOF, true ) && patcheck('NONEOF',typedefObject.NONEOF, false ) && (function() {
+                    var condition = typedefObject.EXPRESSION;
+                    if ( condition == undefined ) {
+                        llog.push( { type:"OK", reason : "[EXPRESSION] '"+typedefID+ "' has no condition." } );
                         return true;
-                    } else {
-                        // llog.push( { type:"Log", reason :  [] } );
-                        for ( var i=0; i<leqValues.length; i++ ) {
-                            if ( eq( leqValues[i], objectValue ) ) {
-                                llog.push( { type:"OK", reason : "[LEQU] '" + objectName2+ "' is equivalent with one of objects in LEQU defintion" } );
-                                return true;
-                            }
+                    } else if ( typeof condition =='string' ) {
+                        var result = ( function(value) {
+                            // return eval( '(function() {' + condition + '})()' );
+                            return eval( condition );
+                        } )( objectValue );
+                        if ( result ) {
+                            llog.push( { type:"OK",              reason : "[EXPRESSION] '"+typedefID+ "' value($objectValue) is fullfilled with the condition($condition). ",     condition:condition, objectValue:objectValue } );
+                        } else {
+                            llog.push( { type:"Value Unmatched", reason : "[EXPRESSION] '"+typedefID+ "' value($objectValue) is not fullfilled with the condition($condition). ", condition:condition, objectValue:objectValue } );
                         }
-                        llog.push( { type:"Value Unmatched", reason : "[LEQU] the value of '" + objectName2 + "' should be one of $leqValues but actually $objectValue", leqValues:_lclone(leqValues), objectValue:_lclone(objectValue) } );
-                        return false;
+                        return result;
+                    } else {
+                        llog.push( { type:"Malformed Type Definition", reason:"[EXPRESSION] the content of EXPRESSION must be a string value but '" (+ typeof condition ) + "'" } );
                     }
                 })() && (function() {
                     // if ( doFastTypeCheck ) {
@@ -518,37 +582,37 @@
                     //     return true;
                     // }
                     // llog.push( { type:"Log", reason : [] } );
-                    var lpatValues = typedefObject.LPAT;
+                    var lpatValues = typedefObject.REGEXP;
                     if ( lpatValues == undefined ) {
                         // llog.push( { type:"Log", reason :[] } );
-                        llog.push( { type:"OK", reason : "[LPAT] the type '" + typedefID+ "' has no pattern restriction" } );
+                        llog.push( { type:"OK", reason : "[REGEXP] '" + typedefID+ "' has no pattern restriction." } );
                         return true;
                     } else {
                         // llog.push( { type:"Log", reason : [] } );
                         for ( var i=0; i<lpatValues.length; i++ ) {
                             if ( new RegExp( lpatValues[i] ,'g' ).test( objectValue ) ) {
-                                llog.push( { type:"OK", reason : "'[LPAT] $lpatValues matched specified value $objectValue", lpatValues:_lclone(lpatValues), objectValue:_lclone(objectValue) } );
+                                llog.push( { type:"OK", reason : "'[REGEXP] '" + typedefID+ "' the pattern '" + lpatValues[i] + "' matched to the value($objectValue)" ,lpatValues:_lclone(lpatValues), objectValue:_lclone(objectValue) } );
                                 return true;
                             }
                             // llog.push( { type:"Log", reason : [] } );
                         }
-                        llog.push( { type:"Pattern Unmatched", reason : "[LPAT] the value of '"+ objectName2 +"' should be one of $lpatValues but actually $objectValue", lpatValues:_lclone(lpatValues), objectValue:_lclone(objectValue) } );
+                        llog.push( { type:"Pattern Unmatched", reason : "[REGEXP] '" + typedefID+ "' the patterns ($lpatValues) do not match with the value($objectValue).", lpatValues:_lclone(lpatValues), objectValue:_lclone(objectValue) } );
                         return false;
                     }
                 })();
 
                 function embedRTTI() {
-                    if ( doembedRTTI && (! doFastTypeCheck ) && typedefObject.LNAME != null ) {
+                    if ( doembedRTTI && (! doFastTypeCheck ) && typedefObject.NAME != null ) {
                         //if ( objectValue == null || typeof objectValue!='object' ) {
-                        if ( ! _lasCheckPrimitive( 'object',  objectValue ) ) {
-                            llog.push( { type:"OK", reason: "[EMBEDDING_RTTI] unable to add the value '"+typedefID+"' to the Run Time Type Information object of the current value so ignored. typeof(" + objectValue + ")=='" + (typeof objectValue) + "'" } );
+                        if ( ! _ltypeofCheck( 'object',  objectValue ) ) {
+                            llog.push( { type:"OK", reason: "[EMBEDDING_RTTI] unable to add the value '"+typedefID+"' to the Run Time Type Information object of the current value so ignored. typeof(" + objectValue + ")=='" + (_ltypeof( objectValue ) ) + "'" } );
                             return;
                         }
                         var before=[],after=[];
                         if ( objectValue.LTYPE != undefined ) {
                             before =  before.concat( objectValue.LTYPE );
                         }
-                        _lembed( objectValue, [ typedefObject.LNAME ] );
+                        _lembed( objectValue, [ typedefObject.NAME ] );
                         if ( objectValue.LTYPE != undefined ) {
                             after  = after.concat( objectValue.LTYPE );
                         }

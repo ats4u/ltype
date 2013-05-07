@@ -103,14 +103,14 @@
                 return lcompile( "hello" );
             });
 
-            ltypeTestExpectError( "ILLEGAL_COMPILE_NO_LTYPEOF[ERROR] (lcompile throws an exception if any of typedef-object contains no LTYPEOF property.)", function () {
+            ltypeTestAuto( "ILLEGAL_COMPILE_NO_LTYPEOF[NORMAL] (lcompile throws an exception if any of typedef-object contains no LTYPEOF property.)", function () {
                 return lcompile([
-                    {LNAME:"test", /* LTYPEOF:'any', */  },
+                    {NAME:"test", /* LTYPEOF:'any', */  },
                 ]);
             });
-            ltypeTestExpectError( "ILLEGAL_COMPILE_NO_LNAME[ERROR] (lcompile throws an exception if any of typeof-object contains no LNAME property.)", function () {
+            ltypeTestExpectError( "ILLEGAL_COMPILE_NO_NAME[ERROR] (lcompile throws an exception if any of typeof-object contains no NAME property.)", function () {
                 return lcompile([
-                    {/*LNAME:"test",*/ LTYPEOF:'any',  },
+                    {/*NAME:"test",*/ LTYPEOF:'any',  },
                 ]);
             });
 
@@ -345,16 +345,46 @@
 
         }
 
+        tpat();
+        function tpat() {
+            ltestSetUnitExecute( ltestUnitExecute2 );
+            var lcast;
+            ltypeTestAuto( "REGEXP_TEST00 [NORMAL]",  function () { 
+                lcast = lcompile([
+                    {
+                        NAME : 'LPatternTest', // Specify its ID string as a property 'NAME'
+                        LTYPEOF: 'any',
+                        REGEXP : [ '^[a-z]*$', '^[0-9]\\.[0-9][0-9]$' ],
+                    }
+                ]);
+            });
+            ltypeTestAuto( "REGEXP_TEST01 [NORMAL]",  function () { 
+                lcast( 'LPatternTest', 'abc' ); // [OK]
+            });
+            ltypeTestAuto( "REGEXP_TEST02 [ERROR]",  function () { 
+                lcast( 'LPatternTest', 'ABC' ); // [FAIL]
+            });
+            ltypeTestAuto( "REGEXP_TEST02 [NORMAL]",  function () { 
+                lcast( 'LPatternTest', '3.14' ); // [OK]
+            });
+            ltypeTestAuto( "REGEXP_TEST03 [NORMAL]",  function () { 
+                lcast( 'LPatternTest', '1.41' ); // [OK]
+            });
+            ltypeTestAuto( "REGEXP_TEST04 [ERROR]",  function () { 
+                lcast( 'LPatternTest', '2.718281828' ); // [FAIL]
+            });
+        }
+
         t02();
         function t02() {
             ltestSetUnitExecute( ltestUnitExecute2 );
-            ltypeTestAuto( "LIS_DEFAULT_TO_LNAME_01 [NORMAL] (LIS defaults to LNAME. Test the case when LIS is *an empty array*. Check if embeding procedure is working correctly,too.)",  function () { 
-                var lcast = lcompile([ { LNAME:"LHello",   LTYPEOF:'object',  LIS :[] } ] );
+            ltypeTestAuto( "LIS_DEFAULT_TO_NAME_01 [NORMAL] (LIS defaults to NAME. Test the case when LIS is *an empty array*. Check if embeding procedure is working correctly,too.)",  function () { 
+                var lcast = lcompile([ { NAME:"LHello",   LTYPEOF:'object',  LIS :[] } ] );
                 return lcast( "*LHello", lcast("LHello", {} ) );
             });
 
-            ltypeTestAuto( "LIS_DEFAULT_TO_LNAME_02 [NORMAL] (LIS defaults to LNAME. Test the case when its *LIS property already contains LNAME*. Check if the embeding procedure is working correctly,too.)",  function () { 
-                var lcast = lcompile([ { LNAME:"LHello",   LTYPEOF:'object',  LIS :[ "LHello" ] } ] );
+            ltypeTestAuto( "LIS_DEFAULT_TO_NAME_02 [NORMAL] (LIS defaults to NAME. Test the case when its *LIS property already contains NAME*. Check if the embeding procedure is working correctly,too.)",  function () { 
+                var lcast = lcompile([ { NAME:"LHello",   LTYPEOF:'object',  LIS :[ "LHello" ] } ] );
                 return lcast( "*LHello", lcast("LHello", {} ) );
             });
 
@@ -377,10 +407,10 @@
             // ltypeTestExpectError( "UNDEFINED FIELD2",  function () { 
             //     var lcast = lcompile([ 
             //         {
-            //             LNAME:"LNumber",   
+            //             NAME:"LNumber",   
             //             LTYPEOF:'object',  
             //             LIS :['LNumber', ],  
-            //             LFIELDS: { 
+            //             FIELDS: { 
             //                 num:"number||undefined", 
             //             }, 
             //         }, 
@@ -392,10 +422,10 @@
             // ltypeTestExpectValue( "UNDEFINED FIELD3",  function () { 
             //     var lcast = lcompile([ 
             //         {
-            //             LNAME:"LNumber",   
+            //             NAME:"LNumber",   
             //             LTYPEOF:'object',  
             //             LIS :['LNumber', ],  
-            //             LFIELDS: { 
+            //             FIELDS: { 
             //                 num:"number||undefined", 
             //             }, 
             //         }, 
@@ -464,14 +494,14 @@
             // if lcompile gets object, return ltype's interface object.
             ltypeTestExpectValue( "COMPILE_NORMAL",  function () { 
                 lcast = lcompile([ 
-                    {LNAME:"LNumber",   LTYPEOF:'object',  LIS :['LNumber', ],  LFIELDS: { num:"number", }, }, 
-                    {LNAME:"LSub"   ,   LTYPEOF:'object',  LIS :['LSub',], }, 
-                    {LNAME:"LAnother",  LTYPEOF:'object',  LIS :['LAnother'],  }, 
-                    {LNAME:"LEnum1",    LTYPEOF:'any',     LEQU:[1,"2",true,null], }, 
-                    {LNAME:"LEnum2",    LTYPEOF:'object',  LEQU:[{hello:1,world:2},{hello:3,world:4}] },
-                    {LNAME:"LPat1",     LTYPEOF:'string',  LPAT:[ "^[a-z]+$" ] } ,
-                    {LNAME:"LName",     LTYPEOF:'object',    LIS :['LName',         ],  LFIELDS: { name:"string", }, }, 
-                    {LNAME:"LValue",    LTYPEOF:'object',    LIS :['LName','LValue' ],  LFIELDS: { value:"string", }, }, 
+                    {NAME:"LNumber",   LTYPEOF:'object',  LIS :['LNumber', ],  FIELDS: { num:"number", }, }, 
+                    {NAME:"LSub"   ,   LTYPEOF:'object',  LIS :['LSub',], }, 
+                    {NAME:"LAnother",  LTYPEOF:'object',  LIS :['LAnother'],  }, 
+                    {NAME:"LEnum1",    LTYPEOF:'any',     ONEOF:[1,"2",true,null], }, 
+                    {NAME:"LEnum2",    LTYPEOF:'object',  ONEOF:[{hello:1,world:2},{hello:3,world:4}] },
+                    {NAME:"LPat1",     LTYPEOF:'string',  REGEXP:[ "^[a-z]+$" ] } ,
+                    {NAME:"LName",     LTYPEOF:'object',    LIS :['LName',         ],  FIELDS: { name:"string", }, }, 
+                    {NAME:"LValue",    LTYPEOF:'object',    LIS :['LName','LValue' ],  FIELDS: { value:"string", }, }, 
                 ]);
                 return 'NO_ERROR';
             });
@@ -481,7 +511,7 @@
             // NO6
             // the definition requires number and the field is missing.
             ltypeTestExpectError( "BASICTEST_01_MISSING_PROPERTY", function () {
-                return lcast( "LNumber", { nun:"1" } );
+                return lcast( "LNumber", { NUM:"1" } );
             });
 
             // NO07
@@ -608,7 +638,7 @@
 
         // // t2();
         function t2() {
-            var lcast = lcompile( [ { LNAME : "LObject", LTYPEOF:"object",LFIELDS:{ obj : "LSub", }, }, { LNAME:"LSub", LTYPEOF:"object", }, ] );
+            var lcast = lcompile( [ { NAME : "LObject", LTYPEOF:"object",FIELDS:{ obj : "LSub", }, }, { NAME:"LSub", LTYPEOF:"object", }, ] );
             ltypeTestExpectError( "", function () {
                 return lcast( "LObject", { obj:1 } );
             });
@@ -621,9 +651,9 @@
         function t3() {
             var lcast = lcompile([
                 {
-                    LNAME : "LObject",
+                    NAME : "LObject",
                     LTYPEOF : "object",
-                    LFIELDS : {
+                    FIELDS : {
                         num   : "number",
                         str   : "string",
                         bool  : "boolean",
@@ -632,9 +662,9 @@
                     }
                 },
                 {
-                    LNAME : "LEnum",
+                    NAME : "LEnum",
                     LTYPEOF : "string",
-                    LEQU : [ "hello","world" ],
+                    ONEOF : [ "hello","world" ],
                 },
             ]);
 
@@ -676,9 +706,9 @@
             ltestSetUnitExecute( ltestUnitExecute2 );
             var lcast = lcompile([
                 {
-                    LNAME : "LEnum",
+                    NAME : "LEnum",
                     LTYPEOF : "string",
-                    LEQU : [ "hello","world" ],
+                    ONEOF : [ "hello","world" ],
                 },
             ]);
 
@@ -736,9 +766,9 @@
             ltestSetUnitExecute( ltestUnitExecute2 );
             var lcast = lcompile([
                 {
-                    LNAME : "LObject",
+                    NAME : "LObject",
                     LTYPEOF : "object",
-                    LFIELDS : {
+                    FIELDS : {
                         hello:'string',
                     },
                 },
@@ -767,7 +797,7 @@
             ltypeTestExpectValue( "INLINE_DEFINITION_2_CORRECT",  function () { 
                 var lcast = lcompile([]); 
                 lcast({
-                    LNAME:"Test",
+                    NAME:"Test",
                     LTYPEOF:"string",
                 }, "hello" );
             });
@@ -775,7 +805,7 @@
             ltypeTestExpectError( "INLINE_DEFINITION_3_INCORRECT",  function () { 
                 var lcast = lcompile([]); 
                 lcast({
-                    LNAME:"Test",
+                    NAME:"Test",
                     LTYPEOF:"number",
                 },"hello" );
             });
@@ -783,9 +813,9 @@
             ltypeTestExpectValue( "INLINE_DEFINITION_4_RECURSIVE_LEVEL_1_CORRECT",  function () { 
                 var lcast = lcompile([]); 
                 lcast({
-                    LNAME:"Test",
+                    NAME:"Test",
                     LTYPEOF:"object",
-                    LFIELDS : {
+                    FIELDS : {
                         hello : 'string',
                         world : 'string',
                     }
@@ -798,15 +828,15 @@
             ltypeTestExpectValue( "INLINE_DEFINITION_5_RECURSIVE_LEVEL_2_CORRECT",  function () { 
                 var lcast = lcompile([]); 
                 lcast({
-                    LNAME:"Test",
+                    NAME:"Test",
                     LTYPEOF:"object",
-                    LFIELDS : {
+                    FIELDS : {
                         hello : 'string',
                         world : 'string',
                         recursive : {
-                            LNAME:"Test.TYP1",
+                            NAME:"Test.TYP1",
                             LTYPEOF:"object",
-                            LFIELDS : {
+                            FIELDS : {
                                 foo : 'string',
                                 bar : 'string',
                             }
@@ -825,13 +855,13 @@
             ltypeTestExpectValue( "UNDEFINED_FIELD01_CORRECT",  function () { 
                 var lcast = lcompile([
                     {
-                        LNAME : "LObject",
+                        NAME : "LObject",
                         LTYPEOF : "object",
-                        LFIELDS : {
+                        FIELDS : {
                             objfield : {
-                                LNAME : '$ObjectField',
+                                NAME : '$ObjectField',
                                 LTYPEOF : 'object',
-                                LFIELDS : {
+                                FIELDS : {
                                     foo:'string',
                                     bar:'number',
                                 },
@@ -853,9 +883,9 @@
             ltypeTestExpectError( "UNDEFINED_FIELD02_INCORRECT",  function () { 
                 var lcast = lcompile([
                     {
-                        LNAME : "LObject",
+                        NAME : "LObject",
                         LTYPEOF : "object",
-                        LFIELDS : {
+                        FIELDS : {
                             objfield: {
                                 foo:'string',
                                 bar:'number',
@@ -872,6 +902,373 @@
                     },
                     strfield : "HELLO!",
                 });
+            });
+        }
+        t6();
+        function t6() {
+            ltestSetUnitExecute( ltestUnitExecute2 );
+
+            ltypeTestAuto( "LEXTENDS_TEST_01 [NORMAL]",  function () { 
+                var lcast = lcompile([
+                    {
+                        NAME : "LString",
+                        EXTENDS : "string",
+                    },
+                ]); 
+                lcast('LString', 'HELLO' );
+            });
+
+            ltypeTestAuto( "LEXTENDS_TEST_02 [ERROR]",  function () { 
+                var lcast = lcompile([
+                    {
+                        NAME : "LString",
+                        EXTENDS : "string",
+                    },
+                ]); 
+                lcast('LString', 100 );
+            });
+
+            ltypeTestAuto( "LEXTENDS_TEST_03 [NORMAL]",  function () { 
+                var lcast = lcompile([
+                    {
+                        NAME : "LString",
+                        EXTENDS : "string||null",
+                    },
+                ]); 
+                lcast('LString', 'HELLO' );
+                lcast('LString', null );
+            });
+            ltypeTestAuto( "LEXTENDS_TEST_04 [ERROR]",  function () { 
+                var lcast = lcompile([
+                    {
+                        NAME : "LString",
+                        EXTENDS : "string||null",
+                    },
+                ]); 
+                lcast('LString', 1234 );
+            });
+            
+        }
+
+        t07();
+        function t07(){
+            var lcast;
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_TEST_00 [NORMAL]",  function () { 
+                lcast = lcompile([
+                    {
+                        NAME : "LNumbers",
+                        EXTENDS : "object",
+                        FIELDS : {
+                            number1 : "number",
+                            number2 : "number",
+                        },
+                    },
+                    {
+                        NAME : "LStrings",
+                        EXTENDS : "object",
+                        FIELDS : {
+                            string1 : "string",
+                            string2 : "string",
+                        },
+                    },
+                    {
+                        NAME : "LMulti1",
+                        EXTENDS : "object&&LNumbers&&LStrings",
+                    },
+                    {
+                        NAME : "LMulti2",
+                        EXTENDS : "object&&(LNumbers||LStrings)",
+                    },
+                    {
+                        NAME : "LMulti3",
+                        EXTENDS : "object&& ! ( LNumbers && LStrings) ",
+                    },
+                    {
+                        NAME : "LMulti4",
+                        EXTENDS : "object&& ! LNumbers && ! LStrings",
+                    },
+                ]); 
+            })
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_TEST_11 [NORMAL]",  function () { 
+                lcast('LMulti1', { 
+                    number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_TEST_12 [ERROR]",  function () { 
+                lcast('LMulti1', { 
+                    number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    // string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_TEST_13 [ERROR]",  function () { 
+                lcast('LMulti1', { 
+                    // number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_TEST_14 [ERROR]",  function () { 
+                lcast('LMulti1', { 
+                    number1 : 1,
+                    // number2 : 2,
+                    // string1 : "1",
+                    string2 : "2",
+                });
+            });
+
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_TEST_21 [NORMAL]",  function () { 
+                lcast('LMulti2', { 
+                    number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_TEST_22 [NORMAL]",  function () { 
+                lcast('LMulti2', { 
+                    number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    // string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_TEST_23 [NORMAL]",  function () { 
+                lcast('LMulti2', { 
+                    // number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_TEST_24 [ERROR]",  function () { 
+                lcast('LMulti2', { 
+                    number1 : 1,
+                    // number2 : 2,
+                    // string1 : "1",
+                    string2 : "2",
+                });
+            });
+
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_WITH_NOT_TEST_31 [ERROR]",  function () { 
+                lcast('LMulti3', { 
+                    number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_WITH_NOT_TEST_32 [NORMAL]",  function () { 
+                lcast('LMulti3', { 
+                    number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    // string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_WITH_NOT_TEST_33 [NORMAL]",  function () { 
+                lcast('LMulti3', { 
+                    // number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_WITH_NOT_TEST_34 [NORMAL]",  function () { 
+                lcast('LMulti3', { 
+                    number1 : 1,
+                    // number2 : 2,
+                    // string1 : "1",
+                    string2 : "2",
+                });
+            });
+
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_WITH_NOT_TEST_41 [ERROR]",  function () { 
+                lcast('LMulti4', { 
+                    number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_WITH_NOT_TEST_42 [ERROR]",  function () { 
+                lcast('LMulti4', { 
+                    number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    // string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_WITH_NOT_TEST_43 [ERROR]",  function () { 
+                lcast('LMulti4', { 
+                    // number1 : 1,
+                    number2 : 2,
+                    string1 : "1",
+                    string2 : "2",
+                });
+            });
+            ltypeTestAuto( "LEXTENDS_MULTI_INHERITANCE_WITH_NOT_TEST_44 [NORMAL]",  function () { 
+                lcast('LMulti4', { 
+                    number1 : 1,
+                    // number2 : 2,
+                    // string1 : "1",
+                    string2 : "2",
+                });
+            });
+
+
+        }
+        t08();
+        function t08(){
+            var lcast;
+            ltypeTestAuto( "UNDEFINED_CLASS_TEST_00 [NORMAL]",  function () { 
+                lcast = lcompile([
+                    {
+                        NAME : "LNumbers",
+                        EXTENDS : "object",
+                        FIELDS : {
+                            number1 : "number",
+                            number2 : "number",
+                        },
+                    },
+                    {
+                        NAME : "LStrings",
+                        EXTENDS : "object",
+                        FIELDS : {
+                            string1 : "string",
+                            string2 : "string",
+                        },
+                    },
+                ]); 
+            })
+            ltypeTestAuto( "UNDEFINED_CLASS_TEST_01 [ERROR]",  function () { 
+                lcast('LUndefined', { 
+                    number1 : 1,
+                    // number2 : 2,
+                    // string1 : "1",
+                    string2 : "2",
+                });
+            });
+        }
+
+        t09();
+        function t09(){
+            ltypeTestAuto( "FIELD_CHECKING_WITH_NULL_TEST_01 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast({
+                    FIELDS : {
+                        number1 : "number",
+                        number2 : "number",
+                    },
+                }, null );
+            });
+        }
+
+        t10();
+        function t10(){
+            ltypeTestAuto( "ONEOF_TEST_01 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ 1,2,3 ] }, 1 );
+            });
+            ltypeTestAuto( "ONEOF_TEST_02 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ 1,2,3 ] }, 2 );
+            });
+            ltypeTestAuto( "ONEOF_TEST_03 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ 1,2,3 ] }, 3 );
+            });
+            ltypeTestAuto( "ONEOF_TEST_04 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ 1,2,3 ] }, 4 );
+            });
+            ltypeTestAuto( "ONEOF_TEST_05 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ NaN ] }, NaN );
+            });
+            ltypeTestAuto( "ONEOF_TEST_06 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ NaN ] }, 'NaN' );
+            });
+            ltypeTestAuto( "ONEOF_TEST_07 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ Infinity ] }, Infinity );
+            });
+            ltypeTestAuto( "ONEOF_TEST_08 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ Infinity ] }, 'Infinity' );
+            });
+            ltypeTestAuto( "ONEOF_TEST_09 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ -Infinity ] }, -Infinity );
+            });
+            ltypeTestAuto( "ONEOF_TEST_10 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ -Infinity ] }, '-Infinity' );
+            });
+            ltypeTestAuto( "ONEOF_TEST_11 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ {a:1,b:2,c:3,d:4} ] }, {a:1,b:2,c:3,d:4} );
+            });
+            ltypeTestAuto( "ONEOF_TEST_12 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { ONEOF : [ {a:1,b:2,c:3,d:4} ] }, {a:2,b:2,c:3,d:4} );
+            });
+        }
+        t11();
+        function t11(){
+            ltypeTestAuto( "NONEOF_TEST_01 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ 1,2,3 ] }, 1 );
+            });
+            ltypeTestAuto( "NONEOF_TEST_02 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ 1,2,3 ] }, 2 );
+            });
+            ltypeTestAuto( "NONEOF_TEST_03 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ 1,2,3 ] }, 3 );
+            });
+            ltypeTestAuto( "NONEOF_TEST_04 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ 1,2,3 ] }, 4 );
+            });
+            ltypeTestAuto( "NONEOF_TEST_05 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ NaN ] }, NaN );
+            });
+            ltypeTestAuto( "NONEOF_TEST_06 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ NaN ] }, 'NaN' );
+            });
+            ltypeTestAuto( "NONEOF_TEST_07 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ Infinity ] }, Infinity );
+            });
+            ltypeTestAuto( "NONEOF_TEST_08 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ Infinity ] }, 'Infinity' );
+            });
+            ltypeTestAuto( "NONEOF_TEST_09 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ -Infinity ] }, -Infinity );
+            });
+            ltypeTestAuto( "NONEOF_TEST_10 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ -Infinity ] }, '-Infinity' );
+            });
+            ltypeTestAuto( "NONEOF_TEST_11 [ERROR]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ {a:1,b:2,c:3,d:4} ] }, {a:1,b:2,c:3,d:4} );
+            });
+            ltypeTestAuto( "NONEOF_TEST_12 [NORMAL]",  function () { 
+                var lcast = lcompile();
+                lcast( { NONEOF : [ {a:1,b:2,c:3,d:4} ] }, {a:2,b:2,c:3,d:4} );
             });
         }
 
