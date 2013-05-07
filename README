@@ -303,11 +303,11 @@ Setting an array to NONEOF restriction on the LTYPEDEF-OBJECT object enables
 you to exclude specific values from the definition of consistency:
 
     // An example :
-    var ltypedef = { NONEOF : [ 'Fuck', 'Cunt', 'Shit' ] };
-    lcast( ltypedef, 'Fuck' ); // [FAIL]
-    lcast( ltypedef, 'Cunt' ); // [FAIL]
-    lcast( ltypedef, 'Shit' ); // [FAIL]
-    lcast( ltypedef, 'Go Ahead Nuclear Reactor Tsunami is Nothing!' ); // [OK]
+    var ltypedef = { NONEOF : [ 'Foo', 'Bah', 'Bum' ] };
+    lcast( ltypedef, 'Foo' ); // [FAIL]
+    lcast( ltypedef, 'Bah' ); // [FAIL]
+    lcast( ltypedef, 'Bum' ); // [FAIL]
+    lcast( ltypedef, 'Go Ahead, Nuclear Reactors! Tsunami is Nothing!' ); // [OK]
 
     // NONEOF can also take any value:
     var ltypedef = { NONEOF : [ NaN, Infinity ] };
@@ -575,7 +575,7 @@ ltype_test.html
 
 5.2) ABOUT THE AUTHOR
 
-Please let me explain about a dificulties about my current situation. I did not
+Please let me explain about dificulties of my current situation. I did not
 graduate any universities nor high-schools. I have been interested in
 programming, dialect of languages and music. But I did not get good chance to
 study about them formally.  So I am totally self-educated.  
@@ -585,27 +585,26 @@ I finally found a job in a major computer company in Japan as a subcontract.
 It was not very good job as it is merely building some database applications so
 that I could not use my ability to maximum.
 
-I decided to go outside from Japan around 2005 and moved to Thailand.
-I started to write some systems which I designed by myself. I also started
+I decided to get outside from Japan around 2005. I moved to Thailand.  Since
+then I started to write some systems which I designed by myself. I also started
 to study some languages includes Thai, Lao with Isarn dialect by myself.
 
-Now by 2013, I learned six languages including English and Chinese with some
-dialects. Especially I am strongly interested in Isarn dialect which is
+Now it is 2013.Now I learned six languages including English and Chinese with
+some dialects. Especially I am strongly interested in Isarn dialect which is
 a creole between Thai and Laosian. I can speak Isarn. I am also interested in
 Cockney English dialect and Yunnan Chinese dialect. I am still studying about
 them but I have not reached to get ability to speak them.
 
-The problem is, my economical problem. I am finishing my money to study and
-develop my own-designed systems. I have no economical support at all. I am
-merely consuming my saving. I been living at cost less than 300 dollars per
-a month. And now I even have difficulties to live.
+The problem is, my economical problem. I am finishing my money to examine
+myself and develop my own-designed systems. I have no economical support at
+all. I am merely using money from my small amount of saving. I been living at
+cost less than 300 dollars per a month. 
 
-I NEED YOUR SUPPORT. 
+I NEED YOUR SUPPORT. ANY SUPPORT IS WELCOME!
 
-I think the final place to go for me is United States especially Silicon-Valley
-because it might be only place to use my abilities to its maximum.
-
-But I still have no chance to go to United States.
+- OFFERING RECRUITMENT
+- OFFERING MONEY
+- OFFERING A CHANCE TO GO TO CALIFORNIA
 
 
 My abilities :
@@ -628,8 +627,3 @@ Computer Science :
         - SQL 1996~2004 eight years.
 
 
-=======
-ltype
-=====
-
-An extremely lightweight type checking system for JavaScript
