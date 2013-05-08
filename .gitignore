@@ -1,6 +1,6 @@
-<<<<<<< HEAD
 make-mixitrans.sh
 make_ltype_test.sh
+log/*
 =======
 lib-cov
 *.seed
@@ -16,4 +16,4 @@ logs
 results
 
 npm-debug.log
->>>>>>> 4aa806ff6322aef4d3cb660702eb0f17e9143952
+

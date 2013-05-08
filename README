@@ -2,7 +2,7 @@
     LTYPE
     A Very Simple Non Prototype Based Type Management System For JavaScript
 
-    Author :  Ats Oka (I'm from Japan)
+    Author :  Ats Oka (I am from Japan)
     Website : http://ats.oka.nu/  https://github.com/ats4u
     mailto : ats.creativity@gmail.com
     Licence : BSD licence
@@ -44,9 +44,9 @@ roubust systems. Lacking interface based type checking makes development by
 JavaScript more complex.
 
 Final goal of LTYPE project is to offer an interface based runtime type
-checking system on JavaScript. And LTYPE will describe that the JavaScript
-interface based type system entirely includes whole JSON SCHEMA system's
-functions.
+checking system on JavaScript. And LTYPE may demonstrate that the JavaScript
+interface based type system entirely includes whole necessary functions which
+is usually implemented in systems of JSON SCHEMA.
 
 
 2. HOW THIS MODULE CAN BE USED 
@@ -577,37 +577,38 @@ ltype_test.html
 
 Please let me explain about dificulties of my current situation. I did not
 graduate any universities nor high-schools. I have been interested in
-programming, dialect of languages and music. But I did not get good chance to
-study about them formally.  So I am totally self-educated.  
+programming, dialect of languages and music. I did not get good chance to study
+them formally so I have been trying to educate myself.
 
-It is very difficult to get good jobs without university graduation in Japan.
-I finally found a job in a major computer company in Japan as a subcontract.
-It was not very good job as it is merely building some database applications so
-that I could not use my ability to maximum.
+It is very difficult to find jobs without university graduation in Japan. It is
+no matter how much high ability you have. It is just evaluated by educational
+background. I finally found a job in a major computer company in Japan as
+a subcontract. It was not very good job as it is merely building some database
+applications so that I could not use my abilities which I am good at.
 
-I decided to get outside from Japan around 2005. I moved to Thailand.  Since
-then I started to write some systems which I designed by myself. I also started
-to study some languages includes Thai, Lao with Isarn dialect by myself.
+I decided to get outside from Japan and I moved to Thailand in middle of 2005.
+Since then I quit employed jobs and I started to develop myown designed systems.
+I also started to study some languages includes Thai, Lao with Isarn dialect by
+myself.
 
-Now it is 2013.Now I learned six languages including English and Chinese with
-some dialects. Especially I am strongly interested in Isarn dialect which is
-a creole between Thai and Laosian. I can speak Isarn. I am also interested in
-Cockney English dialect and Yunnan Chinese dialect. 
+Now it is 2013. Now I successfully acquired six languages such as English,
+Chinese, Thai, Laotian and their dialects. Especially I am interested in Isarn
+dialect which is a creole between Thai and Laosian. I can speak very influent
+Isarn. I am also interested in Cockney English dialect and Yunnan Chinese
+dialect. 
 
-The problem is, my economical problem. I am finishing my money to train myself
-and develop my own-designed systems. I have no economical support at all. I am
-merely using money from my small amount of saving. I been living at cost less
-than 300 dollars per a month. 
+The problem is, my economical situation. Now I am running out of my money.
+I have no economical support. I have no income. I have been living at very
+reasonable cost which is less than 300 dollars per a month. Even such small
+amount of money, it is really difficult to earn for me.
 
-I NEED YOUR SUPPORT. ANY SUPPORT IS WELCOME!
-
-- OFFERING RECRUITMENT
-- OFFERING MONEY
-- OFFERING A CHANCE TO GO TO CALIFORNIA
+If you could help even small amount of money, it would be great help for me.
+And if I could find a post which enables me to implement my idea for new
+systems it will be the best support for me.
 
 
-My abilities :
-    Languages 
+I will explain my abilities :
+    Languages which I can speak:
         English Chinese Laosian Thai Isarn and native Japanese.
 
     Computer Science
